@@ -1,0 +1,35 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ocp5-virt-rh1
+  title: ocp5-virt-rh1
+  description: A hands-on lab introducing new virtualization specific features and
+    capabilities found in OpenShift 5, and exploring common and well understood
+    workflows in this new environment.
+  annotations:
+    ph.rhdp.io/content-type: lab
+    ph.rhdp.io/deployment-mode: rhdp_published
+    ph.rhdp.io/github-user: acowles-redhat
+    ph.rhdp.io/owner: acowles@redhat.com
+    backstage.io/techdocs-ref: dir:.
+    github.com/project-slug: rhpds/ocp5-virt-rh1
+    ph.rhdp.io/created-at: 2026-08-24T21:39:58.129Z
+  tags:
+    - publishing-house
+    - lab
+    - rhdp-published
+  links:
+    - url: https://github.com/rhpds/ocp5-virt-rh1
+      title: Repository
+      icon: github
+    - url: https://devspaces.apps.ocpv-infra02.wdc07.infra.demo.redhat.com#https://github.com/rhpds/ocp5-virt-rh1
+      title: Open in DevSpaces
+      icon: catalog
+    - url: https://central-api-publishing-house.apps.ocpv-infra02.wdc07.infra.demo.redhat.com
+      title: Central
+      icon: dashboard
+spec:
+  type: content
+  lifecycle: experimental
+  owner: rhdp-team
+  system: publishing-house
