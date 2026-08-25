@@ -31,7 +31,8 @@ Can the lab validate these automatically? No — trust-based. The lab is structu
 6. Deploy and manage VM templates and instance types for standardized VM provisioning
 7. Expose virtual machine-hosted applications using OpenShift services and routes
 8. Migrate virtual machines from external hypervisors into OpenShift using Migration Toolkit for Virtualization
-9. Explore new OpenShift 5 virtualization capabilities integrated throughout the platform
+9. Create and troubleshoot virtual machines using OpenShift Lightspeed and the OCP5 MCP server integration
+10. Explore new OpenShift 5 virtualization capabilities integrated throughout the platform
 
 ## Content Type
 
@@ -42,6 +43,7 @@ Lab (hands-on)
 - Red Hat OpenShift
 - Red Hat OpenShift Virtualization
 - Red Hat OpenShift Data Foundation
+- Red Hat OpenShift Lightspeed
 - Migration Toolkit for Virtualization
 - OpenShift API for Data Protection (OADP)
 
@@ -50,16 +52,16 @@ Lab (hands-on)
 | Module | Title | Duration |
 |--------|-------|----------|
 | 1 | Introduction and Environment Overview | 15 min |
-| 2 | Virtual Machine Management | 30 min |
+| 2 | Virtual Machine Management | 40 min |
 | 3 | Migrating Existing VMs with MTV | 30 min |
 | 4 | VM Storage Management | 20 min |
 | 5 | Backup and Recovery with OADP | 20 min |
 | 6 | Templates and InstanceType Management | 20 min |
 | 7 | VM Networking | 25 min |
 | 8 | Working with VMs and Applications | 20 min |
-| — | **Total hands-on** | **~3 hr** |
+| — | **Total hands-on** | **~3 hr 10 min** |
 | — | Intro / orientation | ~10 min |
-| — | **Total lab** | **~3 hr 10 min** |
+| — | **Total lab** | **~3 hr 20 min** |
 
 *OpenShift 5 new features are highlighted throughout each module rather than in a dedicated section.*
 
@@ -82,13 +84,13 @@ Intermediate
 
 ## Infrastructure Requirements
 
-- **Cloud provider:** TBD — confirmed in infrastructure phase
-- **Cluster type:** TBD — confirmed in infrastructure phase
-- **OCP version:** TBD — confirmed in infrastructure phase
-- **Topology:** TBD — confirmed in infrastructure phase
-- **Sizing:** TBD — confirmed in infrastructure phase
-- **Automation approach:** TBD — confirmed in infrastructure phase
-- **AI/MaaS:** TBD — confirmed in infrastructure phase
-- **External services:** TBD — confirmed in infrastructure phase
-- **AAP version:** TBD — confirmed in infrastructure phase
-- **Non-GA products:** TBD — confirmed in infrastructure phase
+- **Cloud provider:** CNV
+- **Cluster type:** Multinode
+- **OCP version:** 5.x (GA at publication)
+- **Topology:** Shared cluster, 20 max concurrent users
+- **Sizing:** 3 control plane nodes (16 vCPU, 64GB RAM); 6 workers (16 vCPU, 64GB RAM, 200GB disk)
+- **Automation approach:** Ansible
+- **AI/MaaS:** MaaS, frontier tier — GPT-5. Justification: prior experience with GPT-4 and lesser models produced suboptimal Lightspeed interactions; open-source models may be substituted at publication if quality is sufficient.
+- **External services:** quay.io, registry.access.redhat.com, cdn.redhat.com
+- **AAP version:** N/A
+- **Non-GA products:** None (OCP5 will be GA at publication)
