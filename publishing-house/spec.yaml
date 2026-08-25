@@ -21,8 +21,49 @@ project:
 
 spec:
   title: "OpenShift 5 Virtualization Lab"
-  learning_objectives: []
-  modules: []              # [{id, title, duration_min}] — written by intake Phase 4; id is stable (e.g. module-01)
+  learning_objectives:
+    - "Create and manage virtual machines using the Red Hat OpenShift Virtualization console and CLI"
+    - "Demonstrate live migration and core VM lifecycle operations in OpenShift 5"
+    - "Configure VM networking within an OpenShift cluster using network attachment definitions and user-defined networks"
+    - "Configure VM storage within an OpenShift cluster using persistent volumes, snapshots, and clones"
+    - "Implement backup and recovery for virtual machines using OADP"
+    - "Deploy and manage VM templates and instance types for standardized VM provisioning"
+    - "Expose virtual machine-hosted applications using OpenShift services and routes"
+    - "Migrate virtual machines from external hypervisors into OpenShift using Migration Toolkit for Virtualization"
+    - "Explore new OpenShift 5 virtualization capabilities integrated throughout the platform"
+  modules:
+    - id: module-01
+      title: "Introduction and Environment Overview"
+      duration_min: 15
+      status: not_started
+    - id: module-02
+      title: "Virtual Machine Management"
+      duration_min: 30
+      status: not_started
+    - id: module-03
+      title: "Migrating Existing VMs with MTV"
+      duration_min: 30
+      status: not_started
+    - id: module-04
+      title: "VM Storage Management"
+      duration_min: 20
+      status: not_started
+    - id: module-05
+      title: "Backup and Recovery with OADP"
+      duration_min: 20
+      status: not_started
+    - id: module-06
+      title: "Templates and InstanceType Management"
+      duration_min: 20
+      status: not_started
+    - id: module-07
+      title: "VM Networking"
+      duration_min: 25
+      status: not_started
+    - id: module-08
+      title: "Working with VMs and Applications"
+      duration_min: 20
+      status: not_started
   environment:
     platform: ""               # ocp | rhel-vms — determines which sizing fields apply
     topology: ""               # shared-cluster | per-student | cnv-pool
@@ -55,7 +96,7 @@ spec:
     external_services: []              # named external service dependencies e.g. [github.com]
     gpu_nodes: 0                       # number of GPU nodes (0 = none)
     gpu_type: ""                       # e.g. NVIDIA A100 40GB (required if gpu_nodes > 0)
-  duration_hours: 2
+  duration_hours: 3
   audience: "intermediate"               # beginner | intermediate | advanced
 
 development:
@@ -79,7 +120,7 @@ tracking:
 approval_checklist:
 
   content:
-    prerequisites_verifiable: null
+    prerequisites_verifiable: false
     assessment_strategy: ""
     catalog_gap: ""
     design_overview: ""

@@ -1,89 +1,94 @@
-# [Project Title]
-
-<!-- This file is the design document for your lab or demo. -->
-<!-- Fill in each section below, or run /rhdp-publishing-house to have the intake skill help. -->
-<!-- Sections marked with [brackets] are placeholders — replace with real content. -->
-<!-- The validation gate checks for all required sections before submission. -->
+# OpenShift 5 Virtualization Lab
 
 ## Overview
 
-[2-3 sentences on what this lab or demo is and why it exists. Then a direct description of what participants will do — specific enough that someone reading this section immediately understands the content without interpretation. No flowery language. Example: "Participants will deploy a 3-tier application on OpenShift, configure autoscaling, and troubleshoot a simulated pod failure."]
+This lab introduces participants to virtual machine management in Red Hat OpenShift 5, covering both foundational OpenShift Virtualization capabilities and new features introduced in OpenShift 5. It is designed as an updated successor to the OpenShift Virtualization Roadshow, incorporating OCP5-specific workflows and tooling.
+
+Participants will create and manage VMs using the OpenShift console and CLI, configure VM networking and storage, explore new OpenShift 5 virtualization capabilities, and migrate existing VMs using the Migration Toolkit for Virtualization. Modules are self-contained and can be completed independently, allowing participants to focus on areas most relevant to their role or use the lab as a skills refresher.
 
 ## Target Audience
 
-- **Role:** [Data scientists, platform engineers, developers, etc.]
-- **Experience level:** [Beginner, intermediate, or advanced]
-- **What they already know:** [Existing skills and knowledge]
-- **What they don't know:** [Skills this lab teaches]
+- **Role:** Platform engineers, infrastructure architects, virtualization administrators (including VMware and other hypervisor admins evaluating or transitioning to OpenShift)
+- **Experience level:** Intermediate
+- **What they already know:** Basic Linux and general infrastructure concepts; familiarity with virtualization fundamentals (VMs, hypervisors, networking)
+- **What they don't know:** OpenShift Virtualization capabilities and workflows; OpenShift 5-specific virtualization features; VM lifecycle management in a Kubernetes-native environment
 
 ## Prerequisites
 
-- [What the learner must know or have completed before starting]
-- [Can the lab validate these automatically? Yes/No — brief explanation]
+- Basic familiarity with virtualization concepts (virtual machines, hypervisors, networking)
+- General Linux command-line comfort
+- No prior OpenShift or Kubernetes experience required
 
-<!-- If no prerequisites, write "None" -->
+Can the lab validate these automatically? No — trust-based. The lab is structured to be accessible without prior OpenShift experience, with enough detail that any participant can follow along.
 
 ## Learning Objectives
 
-1. [Action verb] [specific, measurable outcome]
-2. [Action verb] [specific, measurable outcome]
-3. [Action verb] [specific, measurable outcome]
-
-<!-- Scale to duration: up to 3 objectives per 45 min of content. Start with action verbs: Configure, Deploy, Create, Implement, Troubleshoot, Monitor, Scale. Each should be testable. NOT: Understand, Learn, Know. -->
+1. Create and manage virtual machines using the Red Hat OpenShift Virtualization console and CLI
+2. Demonstrate live migration and core VM lifecycle operations in OpenShift 5
+3. Configure VM networking within an OpenShift cluster using network attachment definitions and user-defined networks
+4. Configure VM storage within an OpenShift cluster using persistent volumes, snapshots, and clones
+5. Implement backup and recovery for virtual machines using OADP
+6. Deploy and manage VM templates and instance types for standardized VM provisioning
+7. Expose virtual machine-hosted applications using OpenShift services and routes
+8. Migrate virtual machines from external hypervisors into OpenShift using Migration Toolkit for Virtualization
+9. Explore new OpenShift 5 virtualization capabilities integrated throughout the platform
 
 ## Content Type
 
-[Lab (hands-on) or Demo (presenter-led)]
+Lab (hands-on)
 
 ## Products & Technologies
 
-- [Official Red Hat product name with version if relevant]
-- [Additional products/technologies]
-
-<!-- Use official names: "Red Hat OpenShift", not "OpenShift". List upstream projects separately. -->
+- Red Hat OpenShift
+- Red Hat OpenShift Virtualization
+- Red Hat OpenShift Data Foundation
+- Migration Toolkit for Virtualization
+- OpenShift API for Data Protection (OADP)
 
 ## Module Map
 
 | Module | Title | Duration |
 |--------|-------|----------|
-| 1 | [Module title] | [XX min] |
-| 2 | [Module title] | [XX min] |
-| — | **Total hands-on** | **[X hours]** |
-| — | Intro / presentation | [~XX min] |
-| — | **Total lab** | **[~X hours]** |
+| 1 | Introduction and Environment Overview | 15 min |
+| 2 | Virtual Machine Management | 30 min |
+| 3 | Migrating Existing VMs with MTV | 30 min |
+| 4 | VM Storage Management | 20 min |
+| 5 | Backup and Recovery with OADP | 20 min |
+| 6 | Templates and InstanceType Management | 20 min |
+| 7 | VM Networking | 25 min |
+| 8 | Working with VMs and Applications | 20 min |
+| — | **Total hands-on** | **~3 hr** |
+| — | Intro / orientation | ~10 min |
+| — | **Total lab** | **~3 hr 10 min** |
 
-<!-- Each module 10-30 min. Total: lab 1-4 hours, demo 15-45 min. Modules should build on each other. -->
+*OpenShift 5 new features are highlighted throughout each module rather than in a dedicated section.*
 
 ## Difficulty Level
 
-[Beginner, Intermediate, or Advanced]
+Intermediate
 
 ## Environment
 
-**Learner view:** [What exists when the lab starts — pre-deployed resources, what participants see and interact with. Be specific about cluster details.]
+**Learner view:** Participants access a pre-deployed OpenShift 5 cluster with the OpenShift Virtualization operator and Migration Toolkit for Virtualization already installed. Each participant has a dedicated namespace. Sample VM boot images are pre-staged in the cluster. The OpenShift web console and `oc` / `virtctl` CLI tools are available from the lab environment.
 
-**Automation needed:** [Yes/No]
+**Automation needed:** Yes
 
-[If yes, list what automation must provision — operators, per-user resources, sample apps, data sets.]
+- OpenShift Virtualization operator installed and configured
+- OpenShift Data Foundation installed and configured
+- Migration Toolkit for Virtualization operator installed
+- OADP operator installed and configured
+- Per-participant namespace with appropriate RBAC
+- Sample VM boot images pre-staged (e.g., RHEL or Fedora disk image available as a DataVolume source)
 
 ## Infrastructure Requirements
 
-- **Cloud provider:** [CNV (default), AWS, or Troshka (bare-metal/nested virt)]
-- **Cluster type:** [Multinode or SNO (Single Node OpenShift)]
-- **OCP version:** [e.g. 4.20 — minimum 4.20]
-- **Topology:** [Shared cluster, per-student, or CNV pool]
-- **Sizing:** [Node types and counts with resources — e.g., "3 control plane (16 CPU, 64GB RAM), 6 workers (8 CPU, 32GB RAM, 100GB disk)"]
-- **Automation approach:** [Ansible, GitOps (Helm + ArgoCD), or combo]
-- **AI/MaaS:** [None, MaaS (open-source model), MaaS (frontier model), or dedicated GPU — include justification if not "none"]
-- **External services:** [Named services — e.g., github.com, registry.access.redhat.com — or "None"]
-- **AAP version:** [e.g. 2.5 — only if AAP is in products; omit otherwise]
-- **Non-GA products:** [Product name + version, with access plan — or "None (all products are GA)"]
-
-<!-- Not all fields must be known at intake. "TBD, estimating ~X" is fine. -->
-
-## Assessment Strategy (Optional)
-
-<!-- Optional — skip this section for demos or classic labs without verification. -->
-<!-- Relevant for Zero-Touch labs with solve/validate buttons or labs with automated checks. -->
-
-[If applicable: how will we know the learner successfully completed each module? Per module: verification script, solve/validate button, visible result in the UI, or automated check.]
+- **Cloud provider:** TBD — confirmed in infrastructure phase
+- **Cluster type:** TBD — confirmed in infrastructure phase
+- **OCP version:** TBD — confirmed in infrastructure phase
+- **Topology:** TBD — confirmed in infrastructure phase
+- **Sizing:** TBD — confirmed in infrastructure phase
+- **Automation approach:** TBD — confirmed in infrastructure phase
+- **AI/MaaS:** TBD — confirmed in infrastructure phase
+- **External services:** TBD — confirmed in infrastructure phase
+- **AAP version:** TBD — confirmed in infrastructure phase
+- **Non-GA products:** TBD — confirmed in infrastructure phase
