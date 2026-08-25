@@ -123,8 +123,24 @@ approval_checklist:
     prerequisites_verifiable: false
     assessment_strategy: ""
     catalog_gap: "This lab explicitly targets OpenShift 5, while existing catalog content (including the 2026 Roadshow at OCP 4.21) runs on OCP 4.x. The gap is the major-version update — new OCP5 virtualization behaviors, updated APIs and workflows, and OCP5-specific features integrated throughout each module. The 3-hour self-paced independent module format also differs from the 4-hour instructor-led Roadshow delivery model. Additionally, OADP backup and recovery is absent from the highest-matching Product Enablement lab, making it a differentiator here."
-    design_overview: ""
-    module_summaries: []
+    design_overview: "This lab teaches intermediate-level platform engineers and virtualization administrators how to operate virtual machines on Red Hat OpenShift 5, updating the existing OCP Virtualization Roadshow for the OCP5 major version. Participants work through eight self-contained modules covering the full VM lifecycle — creation, networking, storage, backup, templates, migration, and application exposure — with OpenShift 5 features woven throughout rather than siloed in a dedicated section."
+    module_summaries:
+      - title: "Introduction and Environment Overview"
+        overview: "Orients participants to the lab environment and the OpenShift Virtualization console. Covers HyperConverged health verification, CLI tool setup (oc, virtctl), and namespace preparation."
+      - title: "Virtual Machine Management"
+        overview: "Participants create a VM from a boot source, manage its lifecycle (start, stop, pause, restart) via the console and virtctl, access it via VNC and SSH, and perform a live migration between nodes."
+      - title: "Migrating Existing VMs with MTV"
+        overview: "Covers the full MTV migration workflow — configuring source providers (OVA/VMware), creating network and storage maps, executing a migration plan, and validating the imported VM in OpenShift."
+      - title: "VM Storage Management"
+        overview: "Participants inspect DataVolumes and PVCs backing a VM, hot-plug a blank disk to a running VM, create a volume snapshot, and restore the VM from that snapshot."
+      - title: "Backup and Recovery with OADP"
+        overview: "Covers deploying a DataProtectionApplication with the KubeVirt plugin, creating a Backup CR for a running VM, simulating VM loss, and performing a full restore."
+      - title: "Templates and InstanceType Management"
+        overview: "Participants explore built-in OpenShift Virtualization instance types, create a custom VirtualMachineClusterInstancetype, provision a VM from it, and create a custom VM template for reuse."
+      - title: "VM Networking"
+        overview: "Covers the default pod network (masquerade mode), creating a NetworkAttachmentDefinition with Linux bridge CNI, attaching a secondary interface to a running VM, and configuring User-Defined Networks introduced in OpenShift 5."
+      - title: "Working with VMs and Applications"
+        overview: "Participants deploy an application inside a VM, use virtctl expose to create a ClusterIP Service, create an OpenShift Route for external access, and explore the Developer console topology view for VM-hosted workloads."
     rcars_overlap_pct: 87
     rcars_top_matches:
       - title: "Product Enablement: OpenShift Virtualization and Migration Lab"
