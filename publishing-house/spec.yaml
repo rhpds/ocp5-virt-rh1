@@ -89,7 +89,7 @@ spec:
     # --- Common fields (both platforms) ---
     aap_version: ""                    # required if AAP in products
     ai_requirement: "maas"             # maas | gpu | none
-    ai_model_tier: "open-source"       # open-source | frontier (if ai_requirement = maas or gpu)
+    ai_model_tier: "frontier"          # open-source | frontier (if ai_requirement = maas or gpu)
     ai_model_name: "gpt-5"             # specific model e.g. granite-3.1-8b
     ai_justification: "Prior experience with GPT-4 and lesser open-source models produced suboptimal OpenShift Lightspeed interactions for VM creation and troubleshooting workflows. Frontier model quality is needed to effectively demonstrate product capabilities. Open-source models may be substituted at publication if quality is sufficient."
     non_ga_products: []                # list of non-GA products/versions
