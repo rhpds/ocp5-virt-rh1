@@ -4,8 +4,8 @@ metadata:
   name: ocp5-virt-rh1
   title: ocp5-virt-rh1
   description: A hands-on lab introducing new virtualization specific features and
-    capabilities found in OpenShift 5, and exploring common and well understood
-    workflows in this new environment.
+    capabilities found in OpenShift 5, and exploring common and well understood workflows
+    in this new environment.
   annotations:
     ph.rhdp.io/content-type: lab
     ph.rhdp.io/deployment-mode: rhdp_published
@@ -13,21 +13,24 @@ metadata:
     ph.rhdp.io/owner: acowles@redhat.com
     backstage.io/techdocs-ref: dir:.
     github.com/project-slug: rhpds/ocp5-virt-rh1
-    ph.rhdp.io/created-at: 2026-08-24T21:39:58.129Z
+    ph.rhdp.io/created-at: 2026-08-24 21:39:58.129000+00:00
   tags:
-    - publishing-house
-    - lab
-    - rhdp-published
+  - publishing-house
+  - lab
+  - rhdp-published
   links:
-    - url: https://github.com/rhpds/ocp5-virt-rh1
-      title: Repository
-      icon: github
-    - url: https://devspaces.apps.ocpv-infra02.wdc07.infra.demo.redhat.com#https://github.com/rhpds/ocp5-virt-rh1
-      title: Open in DevSpaces
-      icon: catalog
-    - url: https://central-api-publishing-house.apps.ocpv-infra02.wdc07.infra.demo.redhat.com
-      title: Central
-      icon: dashboard
+  - url: https://github.com/rhpds/ocp5-virt-rh1
+    title: Repository
+    icon: github
+  - url: https://devspaces.apps.ocpv-infra02.wdc07.infra.demo.redhat.com#https://github.com/rhpds/ocp5-virt-rh1
+    title: Open in DevSpaces
+    icon: catalog
+  - url: https://central-api-publishing-house.apps.ocpv-infra02.wdc07.infra.demo.redhat.com
+    title: Central
+    icon: dashboard
+  - url: https://redhat.atlassian.net/browse/RHDPCD-1234
+    title: Jira Epic
+    icon: dashboard
 spec:
   type: content
   lifecycle: experimental

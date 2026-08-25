@@ -16,8 +16,8 @@ project:
   automation_type: "ansible"
   description: "A hands-on lab introducing new virtualization specific features and capabilities found in OpenShift 5, and exploring common and well understood workflows in this new environment."
   # content_reviewer_email and infra_reviewer_email are assigned by the RHDP team — not set by the author
-  jira_ticket: ""
-  workflow_id: ""
+  jira_ticket: "RHDPCD-1234"
+  workflow_id: "713ad77f-ca41-4e06-b358-c45dd774a61a"
 
 spec:
   title: ""
