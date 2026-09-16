@@ -54,7 +54,7 @@ Then reference it by its fully qualified name once the collection is installed:
 ```yaml
 - name: Run my_role_name
   ansible.builtin.include_role:
-    name: <your_namespace>.<your_collection_name>.my_role_name
+    name: ocp5_virt_rh1.automation.my_role_name
 ```
 
 ## Testing locally

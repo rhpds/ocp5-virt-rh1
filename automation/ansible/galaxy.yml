@@ -1,0 +1,10 @@
+---
+namespace: "ocp5_virt_rh1"
+name: "automation"
+version: "1.0.0"
+readme: README.md
+authors:
+  - "acowles-redhat acowles@redhat.com"
+description: "Starter collection for this project's custom Ansible automation."
+license: []
+repository: "https://github.com/rhpds/ocp5-virt-rh1"
