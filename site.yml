@@ -1,6 +1,6 @@
 ---
 site:
-  title: My Project
+  title: OpenShift 5 Virtualization Lab
   url: https://github.com/rhpds/my-project
   start_page: modules::index.adoc
 
