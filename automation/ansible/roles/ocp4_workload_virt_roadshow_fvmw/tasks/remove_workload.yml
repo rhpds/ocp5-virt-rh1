@@ -1,0 +1,40 @@
+---
+# This workload only creates OpenShift resources (MTV providers, credentials,
+# namespaces and rolebindings). It does not create any objects on vCenter, so
+# there is nothing to clean up there. Remove the OpenShift resources created by
+# the workload here.
+
+- name: Remove single-user MTV resources
+  when: ocp4_workload_virt_roadshow_fvmw_num_users | int == 1
+  kubernetes.core.k8s:
+    state: absent
+    api_version: "{{ item.api_version }}"
+    kind: "{{ item.kind }}"
+    name: "{{ item.name }}"
+    namespace: openshift-mtv
+  loop:
+  - api_version: forklift.konveyor.io/v1beta1
+    kind: Provider
+    name: vmware
+  - api_version: v1
+    kind: Secret
+    name: vmware-credentials
+  ignore_errors: true
+
+- name: Remove multi-user MTV namespaces
+  when: ocp4_workload_virt_roadshow_fvmw_num_users | int > 1
+  kubernetes.core.k8s:
+    state: absent
+    api_version: v1
+    kind: Namespace
+    name: "{{ ocp4_workload_virt_roadshow_fvmw_mtv_namespace_base }}{{ user_number }}"
+  loop: "{{ range(1, ocp4_workload_virt_roadshow_fvmw_num_users | int + 1) | list }}"
+  loop_control:
+    loop_var: user_number
+  ignore_errors: true
+# Leave this as the last task in the playbook.
+# --------------------------------------------
+- name: Remove_workload tasks complete
+  when: not silent | bool
+  ansible.builtin.debug:
+    msg: "Remove Workload tasks completed successfully."

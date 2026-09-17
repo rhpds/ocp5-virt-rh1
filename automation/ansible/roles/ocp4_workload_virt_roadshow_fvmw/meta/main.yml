@@ -1,0 +1,18 @@
+---
+galaxy_info:
+  role_name: ocp4_workload_virt_roadshow_fvmw
+  author: Red Hat, Wolfgang Kulhanek (wkulhane@redhat.com)
+  description: |
+    Configure MTV providers against a fixed (fake) vCenter for the OCP Virt Roadshow
+  license: MIT
+  min_ansible_version: 2.9
+  platforms: []
+  galaxy_tags:
+  - ocp
+  - openshift
+  - cnv
+  - kubevirt
+  - roadshow
+  - mtv
+  - vmware
+dependencies: []
