@@ -4,7 +4,7 @@
 
 - name: Set single-user agnosticd user info data for vCenter
   when: ocp4_workload_virt_roadshow_fvmw_num_users | int == 1
-  agnosticd_user_info:
+  agnosticd.core.agnosticd_user_info:
     data:
       vcenter_user: "{{ ocp4_workload_virt_roadshow_fvmw_vcenter_user }}"
       vcenter_password: "{{ ocp4_workload_virt_roadshow_fvmw_vcenter_user_password }}"
@@ -14,7 +14,7 @@
 
 - name: Set multi-user agnosticd user info data for vCenter
   when: ocp4_workload_virt_roadshow_fvmw_num_users | int > 1
-  agnosticd_user_info:
+  agnosticd.core.agnosticd_user_info:
     user: "{{ ocp4_workload_virt_roadshow_fvmw_auth_user_base }}{{ user_number }}"
     data:
       vcenter_user: "{{ ocp4_workload_virt_roadshow_fvmw_auth_user_base }}{{ user_number }}"
@@ -27,7 +27,7 @@
     loop_var: user_number
 
 - name: Set agnosticd user info data for vCenter common to all users
-  agnosticd_user_info:
+  agnosticd.core.agnosticd_user_info:
     data:
       vcenter_password: "{{ ocp4_workload_virt_roadshow_fvmw_vcenter_user_password }}"
       vcenter_console: "{{ fvmw_hostname }}"
