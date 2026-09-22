@@ -1,0 +1,9 @@
+---
+kind: Group
+apiVersion: user.openshift.io/v1
+metadata:
+  name: workshop-users
+users:
+{% for user_number in range(1, ocp4_workload_virt_roadshow_multi_user_count | int + 1) %}
+  - {{ ocp4_workload_virt_roadshow_multi_user_userbase }}{{ user_number }}
+{% endfor %}

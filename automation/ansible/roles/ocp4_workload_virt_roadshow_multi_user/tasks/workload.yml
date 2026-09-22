@@ -39,3 +39,30 @@
   kubernetes.core.k8s:
     state: present
     definition: "{{ lookup('template', 'udn-namespace.yaml.j2' | from_yaml) }}"
+
+- name: Create the workshop-users group
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('template', 'group-workshop-users.yaml.j2' | from_yaml) }}"
+
+- name: Extend built-in roles for workshop users
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('file', resource | from_yaml) }}"
+  loop:
+    - role-shared-resource-viewer.yaml
+    - clusterrole-aggregate-to-basic-user.yaml
+  loop_control:
+    loop_var: resource
+
+- name: Create workshop cluster roles and bind them to the workshop-users group
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('file', resource | from_yaml) }}"
+  loop:
+    - clusterrole-workshop-virtualization-overview.yaml
+    - clusterrole-workshop-monitoring-metrics.yaml
+    - clusterrolebinding-workshop-virtualization-overview.yaml
+    - clusterrolebinding-workshop-monitoring-metrics.yaml
+  loop_control:
+    loop_var: resource

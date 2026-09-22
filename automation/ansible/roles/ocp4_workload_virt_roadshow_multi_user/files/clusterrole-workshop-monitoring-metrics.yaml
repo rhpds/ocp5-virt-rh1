@@ -1,0 +1,12 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: workshop-monitoring-metrics
+  labels:
+    app: workshop
+rules:
+- apiGroups: ["monitoring.coreos.com"]
+  resourceNames: ["k8s"]
+  resources: ["prometheuses/api"]
+  verbs: ["get", "create", "update"]

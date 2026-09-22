@@ -1,0 +1,68 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: workshop-virtualization-overview
+  labels:
+    app: workshop
+rules:
+# Core Nodes access for "Nodes" and "Node load distribution" boxes
+- apiGroups: [""]
+  resources: ["nodes", "nodes/status", "nodes/metrics", "nodes/spec"]
+  verbs: ["get", "list", "watch"]
+
+- apiGroups: ["metrics.k8s.io"]
+  resources: ["nodes"]
+  verbs: ["get", "list", "watch"]
+
+# Version box, VMs and VMIs (needed for Migrations page)
+- apiGroups: ["kubevirt.io"]
+  resources: ["kubevirts", "virtualmachines", "virtualmachineinstances"]
+  verbs: ["get", "list", "watch"]
+
+# VM/VMI subresources for console info
+- apiGroups: ["subresources.kubevirt.io"]
+  resources:
+  - "virtualmachines/expand-spec"
+  - "virtualmachineinstances/guestosinfo"
+  - "virtualmachineinstances/filesystemlist"
+  - "virtualmachineinstances/userlist"
+  - "virtualmachines/objectgraph"
+  - "virtualmachineinstances/objectgraph"
+  verbs: ["get"]
+
+- apiGroups: ["subresources.kubevirt.io"]
+  resources: ["expand-vm-spec"]
+  verbs: ["update"]
+
+# Storage migration resources
+- apiGroups: ["migrations.kubevirt.io"]
+  resources:
+  - "multinamespacevirtualmachinestoragemigrationplans"
+  - "multinamespacevirtualmachinestoragemigrations"
+  - "virtualmachinestoragemigrations"
+  - "virtualmachinestoragemigrationplans"
+  - "migrationpolicies"
+  verbs: ["get", "list", "watch"]
+
+# Live migration resources (Compute -> Migrations)
+- apiGroups: ["kubevirt.io"]
+  resources: ["virtualmachineinstancemigrations"]
+  verbs: ["get", "list", "watch"]
+
+# Instance types & preferences
+- apiGroups: ["instancetype.kubevirt.io"]
+  resources:
+  - "virtualmachineclusterinstancetypes"
+  - "virtualmachineclusterpreferences"
+  verbs: ["get", "list", "watch"]
+
+# Hyperconverged CR
+- apiGroups: ["hco.kubevirt.io"]
+  resources: ["hyperconvergeds"]
+  verbs: ["get", "list", "watch"]
+
+# CDI storage profiles & configs
+- apiGroups: ["cdi.kubevirt.io"]
+  resources: ["cdiconfigs", "storageprofiles"]
+  verbs: ["get", "list", "watch"]
