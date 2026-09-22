@@ -66,3 +66,18 @@
     - clusterrolebinding-workshop-monitoring-metrics.yaml
   loop_control:
     loop_var: resource
+
+- name: Grant authenticated OAuth users additional view access
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('file', resource | from_yaml) }}"
+  loop:
+    - clusterrole-pod-viewer.yaml
+    - clusterrole-workload-viewer.yaml
+    - clusterrolebinding-cnv-metrics-ui-viewer.yaml
+    - clusterrolebinding-cdi-view.yaml
+    - clusterrolebinding-pod-viewer.yaml
+    - clusterrolebinding-workload-viewer.yaml
+    - clusterrolebinding-olm-view.yaml
+  loop_control:
+    loop_var: resource
