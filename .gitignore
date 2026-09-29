@@ -1,3 +1,5 @@
 # Antora build output
 www/
 .cache/
+.DS_Store
+*/.DS_Store

@@ -7,6 +7,8 @@
     - clusterrole-operator-viewer.yaml
     - clusterrolebinding-operator-view.yaml
     - clusterrolebinding-template-view.yaml
+    - clusterrolebinding-virt-template-virtualmachinetemplate-viewer.yaml
+    - clusterrolebinding-virt-template-virtualmachinetemplaterequest-viewer.yaml
   loop_control:
     loop_var: resource
 
@@ -74,6 +76,7 @@
   loop:
     - clusterrole-pod-viewer.yaml
     - clusterrole-workload-viewer.yaml
+    - clusterrole-cnv-metrics-ui-viewer.yaml
     - clusterrolebinding-cnv-metrics-ui-viewer.yaml
     - clusterrolebinding-cdi-view.yaml
     - clusterrolebinding-pod-viewer.yaml
