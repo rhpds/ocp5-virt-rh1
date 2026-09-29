@@ -15,6 +15,32 @@ rules:
   resources: ["nodes"]
   verbs: ["get", "list", "watch"]
 
+# Machine API resources for node/machine overview
+- apiGroups: ["machine.openshift.io"]
+  resources:
+  - "machines"
+  - "machines/status"
+  - "machinesets"
+  - "machinehealthchecks"
+  - "controlplanemachinesets"
+  verbs: ["get", "list", "watch"]
+
+- apiGroups: ["autoscaling.openshift.io"]
+  resources:
+  - "machineautoscalers"
+  verbs: ["get", "list", "watch"]
+
+- apiGroups: ["machineconfiguration.openshift.io"]
+  resources:
+  - "machineconfigs"
+  - "machineconfigpools"
+  verbs: ["get", "list", "watch"]
+
+# Cluster configmaps for overview and console plugins
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch"]
+
 # Version box, VMs and VMIs (needed for Migrations page)
 - apiGroups: ["kubevirt.io"]
   resources: ["kubevirts", "virtualmachines", "virtualmachineinstances"]
