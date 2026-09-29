@@ -13,3 +13,6 @@ rules:
 - apiGroups: ["monitoring.coreos.com"]
   resources: ["prometheusrules", "servicemonitors", "podmonitors"]
   verbs: ["get", "list", "watch"]
+- apiGroups: ["monitoring.coreos.com"]
+  resources: ["alertmanagers", "alertmanagers/api"]
+  verbs: ["get", "list", "watch", "create", "update"]
