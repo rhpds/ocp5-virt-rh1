@@ -76,6 +76,8 @@
   loop:
     - clusterrole-cnv-metrics-ui-viewer.yaml
     - clusterrolebinding-cnv-metrics-ui-viewer.yaml
+    - clusterrole-pvc-viewer.yaml
+    - clusterrolebinding-pvc-viewer.yaml
     - clusterrolebinding-cdi-view.yaml
     - clusterrolebinding-olm-view.yaml
   loop_control:
