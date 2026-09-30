@@ -7,6 +7,8 @@
     - clusterrole-operator-viewer.yaml
     - clusterrolebinding-operator-view.yaml
     - clusterrolebinding-template-view.yaml
+    - clusterrolebinding-virt-template-virtualmachinetemplate-viewer.yaml
+    - clusterrolebinding-virt-template-virtualmachinetemplaterequest-viewer.yaml
   loop_control:
     loop_var: resource
 
@@ -39,3 +41,44 @@
   kubernetes.core.k8s:
     state: present
     definition: "{{ lookup('template', 'udn-namespace.yaml.j2' | from_yaml) }}"
+
+- name: Create the workshop-users group
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('template', 'group-workshop-users.yaml.j2' | from_yaml) }}"
+
+- name: Extend built-in roles for workshop users
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('file', resource | from_yaml) }}"
+  loop:
+    - role-shared-resource-viewer.yaml
+    - clusterrole-aggregate-to-basic-user.yaml
+  loop_control:
+    loop_var: resource
+
+- name: Create workshop cluster roles and bind them to the workshop-users group
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('file', resource | from_yaml) }}"
+  loop:
+    - clusterrole-workshop-virtualization-overview.yaml
+    - clusterrole-workshop-monitoring-metrics.yaml
+    - clusterrolebinding-workshop-virtualization-overview.yaml
+    - clusterrolebinding-workshop-monitoring-metrics.yaml
+  loop_control:
+    loop_var: resource
+
+- name: Grant authenticated OAuth users additional view access
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('file', resource | from_yaml) }}"
+  loop:
+    - clusterrole-cnv-metrics-ui-viewer.yaml
+    - clusterrolebinding-cnv-metrics-ui-viewer.yaml
+    - clusterrole-pvc-viewer.yaml
+    - clusterrolebinding-pvc-viewer.yaml
+    - clusterrolebinding-cdi-view.yaml
+    - clusterrolebinding-olm-view.yaml
+  loop_control:
+    loop_var: resource

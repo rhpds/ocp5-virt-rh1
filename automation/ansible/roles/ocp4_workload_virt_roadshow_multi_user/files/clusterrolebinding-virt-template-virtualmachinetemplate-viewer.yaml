@@ -1,0 +1,13 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: virt-template-virtualmachinetemplate-viewer-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: virt-template-virtualmachinetemplate-viewer-role
+subjects:
+- kind: Group
+  apiGroup: rbac.authorization.k8s.io
+  name: 'system:authenticated'

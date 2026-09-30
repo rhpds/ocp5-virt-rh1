@@ -1,0 +1,15 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: workshop-virtualization-overview
+  labels:
+    app: workshop
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: workshop-virtualization-overview
+subjects:
+- kind: Group
+  apiGroup: rbac.authorization.k8s.io
+  name: workshop-users
