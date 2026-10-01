@@ -1,0 +1,28 @@
+---
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: {{ ocp4_workload_virt_roadshow_vms_windows_iso_name }}
+  namespace: {{ ocp4_workload_virt_roadshow_vms_windows_iso_namespace }}
+  annotations:
+    # Preload even when the default storage class uses WaitForFirstConsumer.
+    cdi.kubevirt.io/storage.bind.immediate.requested: "true"
+spec:
+  source:
+    http:
+      url: {{ ocp4_workload_virt_roadshow_vms_windows_iso_url | to_json }}
+  storage:
+    resources:
+      requests:
+        storage: 6Gi
+---
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataSource
+metadata:
+  name: {{ ocp4_workload_virt_roadshow_vms_windows_iso_name }}
+  namespace: {{ ocp4_workload_virt_roadshow_vms_windows_iso_namespace }}
+spec:
+  source:
+    pvc:
+      name: {{ ocp4_workload_virt_roadshow_vms_windows_iso_name }}
+      namespace: {{ ocp4_workload_virt_roadshow_vms_windows_iso_namespace }}

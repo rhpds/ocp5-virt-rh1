@@ -1,0 +1,24 @@
+---
+- name: Create the shared Windows ISO source
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('template', 'windows_iso.yaml.j2') | from_yaml_all | list }}"
+
+- name: Wait for the Windows ISO import to finish
+  kubernetes.core.k8s_info:
+    api_version: cdi.kubevirt.io/v1beta1
+    kind: DataVolume
+    name: "{{ ocp4_workload_virt_roadshow_vms_windows_iso_name }}"
+    namespace: "{{ ocp4_workload_virt_roadshow_vms_windows_iso_namespace }}"
+  register: r_windows_iso
+  until:
+    - r_windows_iso.resources | length > 0
+    - r_windows_iso.resources[0].status.phase | default('') in ['Succeeded', 'Failed']
+  retries: 180
+  delay: 10
+
+- name: Ensure the Windows ISO is ready for learners
+  ansible.builtin.assert:
+    that:
+      - r_windows_iso.resources[0].status.phase == 'Succeeded'
+    fail_msg: "Windows ISO import failed: {{ r_windows_iso.resources[0].status.conditions | default([]) }}"

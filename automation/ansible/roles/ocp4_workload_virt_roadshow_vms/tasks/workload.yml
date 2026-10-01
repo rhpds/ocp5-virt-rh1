@@ -1,4 +1,7 @@
 ---
+- name: Preload shared Windows installation media
+  ansible.builtin.include_tasks: windows_iso.yml
+
 - name: Set up VMs for a single admin user
   when: ocp4_workload_virt_roadshow_vms_num_users | default("1") | int == 1
   kubernetes.core.k8s:

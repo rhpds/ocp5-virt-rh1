@@ -5,6 +5,13 @@ silent: false
 
 # Location of images for VMs
 ocp4_workload_virt_roadshow_vms_image_url: http://s3.us-east.cloud-object-storage.appdomain.cloud/roadshowocpvirt
+
+# Shared installation media for the Windows template exercise.
+# CDI selects the default storage class and its storage profile.
+ocp4_workload_virt_roadshow_vms_windows_iso_name: windows-server-2022-iso
+ocp4_workload_virt_roadshow_vms_windows_iso_namespace: openshift-virtualization-os-images
+ocp4_workload_virt_roadshow_vms_windows_iso_url: https://catalog-item-assets.s3.us-east-2.amazonaws.com/qcow_images/WINSERV22.iso
+
 # Start VMs after deployment
 ocp4_workload_virt_roadshow_vms_start_vms: false
 

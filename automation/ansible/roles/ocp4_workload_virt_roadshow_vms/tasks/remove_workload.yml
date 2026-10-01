@@ -1,4 +1,9 @@
 ---
+- name: Remove the shared Windows ISO source
+  kubernetes.core.k8s:
+    state: absent
+    definition: "{{ lookup('template', 'windows_iso.yaml.j2') | from_yaml_all | list }}"
+
 - name: Delete VM Namespaces
   kubernetes.core.k8s:
     state: absent
