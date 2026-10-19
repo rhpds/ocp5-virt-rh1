@@ -87,27 +87,42 @@ image::ocp5/module-01-intro/11_VMs_Stopped.png[link=self, window=blank, width=10
 
 . Click on your *vmexamples-{user}* project and you will see that the virtual machine overview column updates and now has a *Create VirtualMachine* button.
 
-. Click on the *Create VirtualMachine* button and select *From template* from the drop-down menu.
+. Click on the *Create VirtualMachine* button,
 +
 image::ocp5/module-01-intro/12_Create_VM_Button.png[link=self, window=blank, width=100%]
-+
-NOTE: VMs can also be created from an InstanceType wizard as well as created by entering a custom YAML definition, but for this current lab scenario we are going to stick with creating VMs based on existing templates.
 
-. You will be taken to the *Catalog* screen, where a number of tiles will appear showing the available pre-defined VM templates.
+. You will be presented with the *Create VirtualMachine* wizard, which is new in OpenShift 5. This presents you with three methods for creating new virtual machines:
 +
-Reviewing the list of available templates you'll notice that some have a blue badge which indicates _Source available_. These are templates which are using automatically downloaded and stored template source disks. 
+* *Custom Configuration*: This is the default option, and makes use of InstanceTypes to create a VM in a custom manner from the ground up, stepping you through each stage of the configuration to craft a virtual machine for your desired purpose.
+* *Create from Template*: This is essentially a quick-start option for getting started with VMs. Templates are predefined and this is designed to get a VM up and running for you in as short a time as possible.
+* *Clone existing VirtualMachine*: Fairly self-explanatory, if you have an existing VM in your cluster, this part of the wizard allows you to select it and sets up a cloning operation.
+
+. Click on *Create from Template* to get started, and in the *Name* field, name your VM: fedora01, and when complete click the *Next* button.
++
+image::ocp5/module-01-intro/12a_Create_VirtualMachine.png[link=self, window=blank, width=100%]
+
+. You will be taken to the *Templates* screen, where a number of tiles will appear showing the available pre-defined VM templates. If you look in the corner you will see that there is a button that allows you to switch between tile and list view. Click it.
++
+image::ocp5/module-01-intro/13_Template_List_Button.png[link=self, window=blank, width=100%]
+
+
+. Reviewing the list of available templates you'll notice that some have a blue badge which indicates _Source available_. These are templates which are using automatically downloaded and stored template source disks. 
 +
 If you were deploying in your own environment where you can customize the options available, you can choose to modify the availability of these boot sources by default, and/or remove these source disks, in favor of creating custom disks for your organization's needs.
 +
-image::ocp5/module-01-intro/13_Create_VM_Templates.png[link=self, window=blank, width=100%]
+image::ocp5/module-01-intro/13a_Source_Available.png[link=self, window=blank, width=100%]
 
-. Select the *Fedora VM* tile, and a dialog opens.
+. Select the *Fedora VM* , and a dialog opens providing details of what the associated template *fedora-server-small* provides for resources. After you have reviewed the information pane, click the *Next* button to continue.
 +
-image::ocp5/module-01-intro/14_Create_VM_Quick.png[link=self, window=blank, width=100%]
+image::ocp5/module-01-intro/14_Select_Template.png[link=self, window=blank, width=100%]
 
-. Change the name to *fedora01* and press *Quick create VirtualMachine*.
+. When you click next you will be presented with the *Customization* screen which allows you to modify the existing template if necessary. Click the *Next* button to continue.
 +
-image::ocp5/module-01-intro/15_Create_VM_Quick_Name.png[link=self, window=blank, width=100%]
+image::ocp5/module-01-intro/15_Customization.png[link=self, window=blank, width=100%]
+
+. You are finally presented with the *Review and create* screen. Click the *Create VirtualMachine* button to start up your new VM.
++
+image::ocp5/module-01-intro/16_Review_Create.png[link=self, window=blank, width=100%] 
 
 . We will return to our tree view and see information about our new VM in the virtual machine overview column. Notice also that we now see our *vmexamples-{user}* project listed in the center column as it contains a VM, and that it is highlighted within the project.
 +
@@ -115,25 +130,24 @@ If we watch closely we can see the VM Status switch from *Provisioning* to *Star
 +
 During this time, the storage provider has cloned the template disk so that it can be used by the newly created virtual machine. The amount of time this takes can vary based on the storage provider being used to create the boot disk, and the current load on the system.
 +
-image::ocp5/module-01-intro/16_Fedora_Running.png[link=self, window=blank, width=100%]
+image::ocp5/module-01-intro/16a_Fedora_Running.png[link=self, window=blank, width=100%]
 
 . Once the virtual machine is running we can do some further exploration of the *Overview* page in the right side column.  
 +
 * *Details*: This tile shows us information about our VM, including it's name, status, creation time, OS, virtual resources, and the template from which it was created. It also contains a miniature VNC terminal, and the ability to launch a fullscreen web console.
-* *General*: This tile shows us information specific to OpenShift, including the Namespace (Project), instance name, and Kubernetes pod where the guest is running.
+* *General*: This tile shows us information specific to OpenShift, including the Namespace (Project), Node, instance name, and Kubernetes pod where the guest is running.
 * *Snapshots*: This tile gives us information about any existing snapshots, and also has the button to quickly create a snapshot.
 * *Network*: This tile gives us the IP address of the virtual machine on the software-defined network (SDN) and it's internal hostname. If no advanced networks are defined, VMs are automatically attached to the pod network. Later in this lab we will explore advanced networking options, and how to customize connectivity for VMs.
 * *Utilization*: This tile gives us an overview of the resources currently in use by this virtual machine, including CPU, Memory, Storage, and Network throughput.
 * *Storage*: This tile gives us information about the current storage volumes, for this VM in particular the cloudinit disk that was used to boot the VM from the template, and the virtual hard disk we installed the machine to.
+* *Hardware devices*: This tile gives us information on any connected hardware devices like GPUs, or other devices that are passed through from the hypervisor.
+* *File systems*: This tile shows the filesystems as they are laid out on the virtual machine, and report important information like disk utilization.
+* *Services*: This tile reports services that are connected to the virtual machine for external access.
+* *Active Users*: This tile lists information about users that are currently logged into the virtual machine.
 +
 image::ocp5/module-01-intro/17_Fedora_Details.png[link=self, window=blank, width=100%]
-
-. After you are done looking at the VM details, click the *Events* tab to see some details of the provisioning process that just took place. If there are any issues with the creation of the VM, they will show up on this tab as well. The following events took place during creation:
 +
-image::ocp5/module-01-intro/18_Fedora_Events.png[link=self, window=blank, width=100%]
-+
-* A _DataVolume_ was created. _DataVolumes_ are used to manage the creation of a VM disk, abstracting the clone or import process onto OpenShift native storage during the virtual machine's creation workflow.
-* The new  _VM instance_ *fedora01* has been started.
+NOTE: You may need to zoom out in your browser or scroll around the page to see all of these sections.
 
 [[admin_vms]]
 == Administering Virtual Machines
