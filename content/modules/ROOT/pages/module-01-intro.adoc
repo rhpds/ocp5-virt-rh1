@@ -168,9 +168,9 @@ image::ocp5/module-01-intro/20_Configuration_Tab.png[link=self, window=blank, wi
 * *Scheduling*: This tab includes advanced configuration options indicating where the VM should run and the strategy to follow for eviction. This tab is used to configure (anti)affinity rules, configure node selectors and tolerations, and other behaviors that affect which cluster nodes the VM can be scheduled to.
 * *SSH*: This tab allows you to configure remote access to the machine by creating an SSH service on a configured load-balancer, or by injecting public SSH keys if the feature is enabled.
 * *Initial run*: This tab allows us to configure _cloud-init_ for Linux or _sys-prep_ for Microsoft Windows, including setting the commands to be executed on the first boot, such as the injection of SSH keys, installation of applications, network configuration, and more.
-* *Metadata*: This tab shows current Labels and Annotations applied to the virtual machine. Modifying these values can help us tag our machines for specific purposes, or help us enable automated workflows by uniquely identifying machines.
+* *Labels and annotations*: This tab shows current Labels and Annotations applied to the virtual machine. Modifying these values can help us tag our machines for specific purposes like scheduling placement on specific nodes, or to help us enable automated workflows by uniquely identifying machines.
 
-. You can click on each of these to explore at your leisure, but for introductory purposes, lets focus on storage and networking specifically.
+. You can click on each of these to explore at your leisure, but for introductory purposes, lets focus on storage and networking specifically which are two primary areas that many virtualization administrators are concerned with.
 
 . List the disks associated with the VM by clicking on the *Storage* tab:
 +
@@ -206,7 +206,7 @@ image::ocp5/module-01-intro/23_VM_State_Actions.png[link=self, window=blank, wid
 +
 image::ocp5/module-01-intro/24_VM_Actions_Menu.png[link=self, window=blank, width=100%]
 
-. Press the *Stop* button and wait until the Virtual Machine is in state *Stopped*.
+. Press the *Stop* button and wait until the Virtual Machine is in state *Stopped*. Notice that in the *Stopped* state the VM is not running, and the pod that was running the VM previous no longer exists.
 +
 image::ocp5/module-01-intro/25_VM_Stopped.png[link=self, window=blank, width=100%]
 
@@ -216,7 +216,7 @@ image::ocp5/module-01-intro/26_VM_Actions_List_Stopped.png[link=self, window=bla
 
 . Click *Start*, and wait for the *Running* status.
 
-. Using the *Actions* menu, or the shortcut button, press the *Pause* option. The Virtual Machine state will change to *Paused*.
+. Using the *Actions* menu, or the shortcut button, press the *Pause* option. The Virtual Machine state will change to *Paused*. Notice how this differs from the *Stopped* state, as the pod instance for the VM still exists.
 +
 image::ocp5/module-01-intro/27_VM_Actions_Paused.png[link=self, window=blank, width=100%]
 
@@ -227,38 +227,29 @@ image::ocp5/module-01-intro/27_VM_Actions_Paused.png[link=self, window=blank, wi
 
 In this section, we will migrate the VM from one OpenShift node to another without shutting down the VM. Live migration requires *ReadWriteMany* (RWX) storage so that the VM disks can be mounted on both the source and destination nodes at the same time. In most cases OpenShift Virtualization, unlike other virtualization solutions that you may be familiar with, does not use monolithic datastores mounted to each cluster member that hold many VM disks for many different VMs by default. Instead, it makes use of the Kubernetes CSI paradigm where persistent claims are created for each VM disk needed, and each of those disks are stored in its own volume that is only mounted when and where it's needed.
 
-. To see the physical node that the virtual machine is running on, click on the *Pod* name _virt-launcher-fedora01-uuid_ found under the *General* tile on the *Overview* page.
+. You can see the physical node where the VM is running on the *General* tile on the *Overview* page.
 +
-image::ocp5/module-01-intro/28_Pod_Name.png[link=self, window=blank, width=100%]
-
-. This will bring up the Pod details page. Search for the section header called *Node* and see the name of the worker that the pod is running on. In this screenshot it is running on _worker-cluster-5dktk-1_.
-+
-image::ocp5/module-01-intro/29_Pod_Details_Node.png[link=self, window=blank, width=100%]
-
-. Click the back button in your browser to return to the *Overview* page. 
+image::ocp5/module-01-intro/28_Node_Name.png[link=self, window=blank, width=100%]
 
 . Using the *Actions* menu, select the option for *Migration* -> *Compute*.
 +
-image::ocp5/module-01-intro/30_VM_Dialog_Migrate.png[link=self, window=blank, width=100%]
+image::ocp5/module-01-intro/29_VM_Dialog_Migrate.png[link=self, window=blank, width=100%]
 
-. You will be presented with a dialog that gives you an option to allow OpenShift to automatically select your destination, or to select a specific node yourself. Leave *Automatically selected Node* selected, and click the *Migrate VirtualMachine* button. 
+. You will be presented with a dialog that gives you an option to allow OpenShift to automatically select your destination, or to select a specific node yourself. If you like you can explore the other suitable nodes on the cluster by selecting the *Specific Node* button. When you are ready to migrate *Automatically selected Node* selected to let OpenShift select the placement, and click the *Migrate VirtualMachine* button. 
 +
-image::ocp5/module-01-intro/30a_Migrate_Target_Node.png[link=self, window=blank, width=100%]
+image::ocp5/module-01-intro/30_Migrate_Auto.png[link=self, window=blank, width=100%]
 +
-NOTE: The multiuser nature of this lab environment has RBAC permissions configured in a manner that does not allow for the listing of the nodes in the cluster. In a production use case, you could choose either option.
+image::ocp5/module-01-intro/31_Migrate_Target_Node.png[link=self, window=blank, width=100%]
 
 . After a few seconds, the VM will change the status to *Migrating*, and you can follow it's progress. 
 +
-image::ocp5/module-01-intro/31_VM_Migrating.png[link=self, window=blank, width=100%]
+image::ocp5/module-01-intro/32_VM_Migrating.png[link=self, window=blank, width=100%]
 
-. When the migration is complete the VM will return to the *Running* status, but it will be running  on a new node. Let's click on our _virt-launcher-fedora01-uuid_ pod name to verify.
+. When the migration is complete the VM will return to the *Running* status, but it will be running on a new node. Let's reference the *Node* field under the *General* tile to see where our VM now resides.
 +
-image::ocp5/module-01-intro/32_Migrated_Status.png[link=self, window=blank, width=100%]
+image::ocp5/module-01-intro/33_Migrated_Status.png[link=self, window=blank, width=100%]
 
-. We can now see that the virtual machine is running on a new node, in the image _worker-cluster-5dktk-3_, and that the pod itself now resides in a new pod with a new unique ID as the live migration process transfers the VM instance to a new pod on a new worker node nondisruptively.
-+
-image::ocp5/module-01-intro/33_Pod_Details_Node_Migrated.png[link=self, window=blank, width=100%]
 
 == Summary
 
-In this lab, we did an overview of the Virtualization management environment in OpenShift Virtualization, provisioned a virtual machine from template, and performed some basic virtual machine management tasks including: state management and a live migration between physical hosts. Each of these tasks are common and often necessary tasks to be performed as platform administrators and a great way to familiarize yourself with some basic features available when working with VMs in OpenShift Virtualization.
+In this lab, we introduced OpenShift Virtualization, by performing an overview of the Virtualization management environment. We provisioned a virtual machine from template, and performed some basic virtual machine management tasks including: state management and a live migration between physical hosts. Each of these tasks are common and often necessary tasks to be performed as platform administrators and a great way to familiarize yourself with some basic features available when working with VMs in OpenShift Virtualization.
