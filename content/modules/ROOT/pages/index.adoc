@@ -18,17 +18,17 @@ In this event we will explore many common management activities that virtualizat
 
 These are the *seven* main sections that will be covered:
 
-* _Virtual Machine Management_: In this section we will provide a review of virtual machine management fundamentals, including quick-creating a virtual machine with a template, and reviewing basic controls and state management.
-
-* _Migrating Existing Virtual Machines_: In this section, we will use the Migration Toolkit for Virtualization (MTV) to migrate virtual machines from an existing VMware vSphere environment to OpenShift Virtualization.
+* _Virtual Machine Management_: In this section we will provide a review of virtual machine management fundamentals, including quick-creating a virtual machine with a template, and reviewing basic machine controls and state management.
 
 * _Storage Management_: The storage paradigm familiar to many administrators changes with OpenShift Virtualization. This section will explore many actions related to storage management for virtual machines including snapshots, and clones.
 
 * _Backup and Recovery for Virtual Machines_: This unit introduces and demonstrates additional concepts around creating remote backups of virtual machines and restoring them in the event of a disaster making use of the OpenShift API for Data Protection (OADP).
 
+* _Network Management_: By default VMs are connected to the pod network in OpenShift. In this section we will explore creating new L2 network mappings as well as making use of user defined networks (UDN) for direct network connectivity.
+
 * _Template Creation and Management_: In order to streamline deployment of virtual machines, administrators will often create templates to ease deployment operations. This section will focus on the processes required to automate application installs through cloud init or unattend scripts and create templates to expedite future deployments.
 
-* _Network Management_: By default VMs are connected to the pod network in OpenShift. In this section we will explore creating new L2 network mappings as well as making use of user defined networks (UDN) for direct network connectivity.
+* _Migrating Existing Virtual Machines_: In this section, we will use the Migration Toolkit for Virtualization (MTV) to migrate virtual machines from an existing VMware vSphere environment to OpenShift Virtualization.
 
 * _Working with Virtual Machines and Applications_: In this section we will perform some day-2 activities with our imported virtual machines, by exposing our VM-hosted applications through services and routes in OpenShift.
 
@@ -119,4 +119,4 @@ This edition of the OpenShift Virtualization Roadshow has been developed using t
 * Red Hat OpenShift Lightspeed 1.1.4
 * Red Hat Migration Toolkit for Virtual Machines 2.12.9
 
-(Accurate as of October 19, 2026)
+(Accurate as of October 20, 2026)
