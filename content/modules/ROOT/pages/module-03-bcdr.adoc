@@ -29,21 +29,21 @@ In this portion of the lab, we will make use of OADP to perform a virtual machin
 
 . Navigate to the *Core platform* perspective, and in the left menu click on *Ecosystem* and then *Installed Operators*.  Ensure that the project *oadp-{user}* is selected. 
 +
-image::2026_spring/module-04-bcdr/00_Left_Menu.png[link=self, window=blank, width=100%]
+image::ocp5/module-03-bcdr/00_Left_Menu.png[link=self, window=blank, width=100%]
 
 . Click on the operator to see it's details.
 
 . Review the *Provided APIs* available. In this module, the *Backup* and *Restore* functions will be used.
 +
-image::2026_spring/module-04-bcdr/01_Overview.png[link=self, window=blank, width=100%]
+image::ocp5/module-03-bcdr/01_Overview.png[link=self, window=blank, width=100%]
 
 . Use the horizontal scrollbar at the top to navigate to the tab *DataProtectionApplication*. This object represents the configuration of the deployed OADP instance.
 +
-image::2026_spring/module-04-bcdr/02_DPA.png[link=self, window=blank, width=100%]
+image::ocp5/module-03-bcdr/02_DPA.png[link=self, window=blank, width=100%]
 
 . Click on *oadp-dpa* to see the details of the _DataProtectionApplication_ and then click on the *YAML* button at the top to see how it is configured.
 +
-image::2026_spring/module-04-bcdr/03_OADP_YAML.png[link=self, window=blank, width=100%]
+image::ocp5/module-03-bcdr/03_OADP_YAML.png[link=self, window=blank, width=100%]
 +
 Notice that *OADP* has been configured by adding the *kubevirt* plugin and it has been configured to use the internal object storage bucket provided by OpenShift Data Foundations running on your cluster.
 +
@@ -60,7 +60,7 @@ NOTE: If you did not complete the previous section, and you do not have the *fed
 
 . Click on the *Backup* tab and press the *Create Backup* button.
 +
-image::2026_spring/module-04-bcdr/04_Backup_Tab.png[link=self, window=blank, width=100%]
+image::ocp5/module-03-bcdr/04_Backup_Tab.png[link=self, window=blank, width=100%]
 
 . Switch to the _YAML view_ and replace the default content with the following one:
 +
@@ -95,38 +95,38 @@ spec:
 +
 Note that the content of this YAML indicates that any object with the labels *app: fedora02* in the namespace *vmexamples-{user}* will be backed up to the location specified in the *DataProtectionApplication* configuration.
 +
-image::2026_spring/module-04-bcdr/05_Create_Backup_YAML.png[link=self, window=blank, width=100%]
+image::ocp5/module-03-bcdr/05_Create_Backup_YAML.png[link=self, window=blank, width=100%]
 
 . Wait until the *Status* column changes to *Completed*. This indicates that the virtual machine has been successfully backed up.
 +
-image::2026_spring/module-04-bcdr/06_Backup_Completed.png[link=self, window=blank, width=100%]
+image::ocp5/module-03-bcdr/06_Backup_Completed.png[link=self, window=blank, width=100%]
 
 [[restore_backup]]
 == Restore From a Backup
 
 . In the left-side menu, click on *Virtualization* and then *VirtualMachines*. In the center tree column expand the *vmexamples-{user}* project and click on the *fedora02* VM.
 +
-image::2026_spring/module-04-bcdr/07_Fedora02_Overview.png[link=self, window=blank, width=100%]
+image::ocp5/module-03-bcdr/07_Fedora02_Overview.png[link=self, window=blank, width=100%]
 
 . Stop the virtual machine using either the button or the *Actions -> Control* menu, and then once it is stopped, click on the *Actions* dropdown and select the option to *Delete* the VM.
 +
-image::2026_spring/module-04-bcdr/08_Delete_VM.png[link=self, window=blank, width=100%]
+image::ocp5/module-03-bcdr/08_Delete_VM.png[link=self, window=blank, width=100%]
 
 . When prompted, click the red *Delete* button to confirm deleting the virtual machine.
 +
-image::2026_spring/module-04-bcdr/09_Confirm_Delete.png[link=self, window=blank, width=100%]
+image::ocp5/module-03-bcdr/09_Confirm_Delete.png[link=self, window=blank, width=100%]
 
 . The virtual machine will disappear from your inventory. Click on the *vmexamples-{user}* project, and the *Virtual machines* tab at the top to ensure you no longer see it.
 +
-image::2026_spring/module-04-bcdr/10_Deleted_VM.png[link=self, window=blank, width=100%]
+image::ocp5/module-03-bcdr/10_Deleted_VM.png[link=self, window=blank, width=100%]
 
 . Click on *Ecosystem* and then *Installed Operators* and select the *OADP Operator* once again. (You may need to switch back to the *OADP-{user}* project.)
 +
-image::2026_spring/module-04-bcdr/11_Switch_Back_OADP.png[link=self, window=blank, width=100%]
+image::ocp5/module-03-bcdr/11_Switch_Back_OADP.png[link=self, window=blank, width=100%]
 
 . Use the horizontal navigation bar to locate the the *Restore* tab, click the *Restore* tab, and then press *Create Restore*.
 +
-image::2026_spring/module-04-bcdr/12_Restore_Tab.png[link=self, window=blank, width=100%]
+image::ocp5/module-03-bcdr/12_Restore_Tab.png[link=self, window=blank, width=100%]
 
 . Switch to the YAML view and replace the content with the following one:
 +
@@ -152,15 +152,15 @@ spec:
 
 . Press the *Create* button at the bottom.
 +
-image::2026_spring/module-04-bcdr/13_Create_Restore_YAML.png[link=self, window=blank, width=100%]
+image::ocp5/module-03-bcdr/13_Create_Restore_YAML.png[link=self, window=blank, width=100%]
 
 . Wait until you see that the *Status* column changes to *Completed*.
 +
-image::2026_spring/module-04-bcdr/14_Restore_Completed.png[link=self, window=blank, width=100%]
+image::ocp5/module-03-bcdr/14_Restore_Completed.png[link=self, window=blank, width=100%]
 
 . Navigate back to *Virtualization* and click  *Virtual Machines* in the left-side menu and confirm that the *fedora02* virtual machine was restored (in the *vmexamples-{user}* project). You can see it's *Created* value should be a quite short time ago.
 +
-image::2026_spring/module-04-bcdr/15_VM_Restored.png[link=self, window=blank, width=100%]
+image::ocp5/module-03-bcdr/15_VM_Restored.png[link=self, window=blank, width=100%]
 
 == Summary
 
