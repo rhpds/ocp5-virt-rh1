@@ -1,15 +1,152 @@
 ---
-# HEALTHCHECK — Quick environment readiness check
-# Runs post-provisioning to verify the lab environment is functional.
-# Should complete in under 60 seconds.
+# healthcheck.yml — Quick environment readiness check
+# OpenShift 5 Virtualization Reimagined (RHDPCD-1236 / LB2076)
 #
-# Exit 0 = healthy, non-zero = unhealthy.
+# Runs post-provisioning to confirm the cluster API is reachable and the
+# operators this lab depends on are installed and healthy before learners
+# are handed the environment:
+#   - OpenShift API                      -> ClusterVersion "version" Available
+#   - OpenShift Virtualization (CNV)     -> openshift-cnv / HyperConverged
+#   - OpenShift Data Foundation (ODF)    -> openshift-storage / StorageCluster
+#   - Migration Toolkit for Virt. (MTV)  -> openshift-mtv / ForkliftController
+#   - OADP (backup & recovery)           -> DataProtectionApplication CRD
+#
+# Operators verified against the lab automation roles
+# (automation/ansible/roles/ocp4_workload_oadp_gitops and
+# ocp4_workload_virt_roadshow_fvmw) and the module content.
+#
+# Authentication comes from the KUBECONFIG environment variable set by the
+# publishing-house runner. Exit 0 = healthy, non-zero = unhealthy.
+# Target runtime < 60s, so retries are kept short.
 
 - name: "Environment Health Check"
   hosts: localhost
   connection: local
   gather_facts: false
+
+  vars:
+    cnv_namespace: openshift-cnv
+    odf_namespace: openshift-storage
+    mtv_namespace: openshift-mtv
+    # Default StorageClass the lab provisions VM disks on (see module-01).
+    default_storage_class: ocs-external-storagecluster-ceph-rbd
+
   tasks:
-    - name: "TODO: Implement health checks"
+    # --- OpenShift API -------------------------------------------------
+    - name: Query the cluster version (confirms the OCP API is reachable)
+      kubernetes.core.k8s_info:
+        api_version: config.openshift.io/v1
+        kind: ClusterVersion
+        name: version
+      register: r_clusterversion
+      retries: 6
+      delay: 5
+      until: r_clusterversion.resources | default([]) | length > 0
+
+    - name: Assert the cluster version reports Available
+      ansible.builtin.assert:
+        that:
+          - r_clusterversion.resources | default([]) | length > 0
+          - >-
+            r_clusterversion.resources[0].status.conditions
+            | selectattr('type', 'equalto', 'Available')
+            | selectattr('status', 'equalto', 'True')
+            | list | length > 0
+        success_msg: >-
+          OpenShift API reachable, cluster version
+          {{ r_clusterversion.resources[0].status.desired.version | default('unknown') }}
+          is Available.
+        fail_msg: "OpenShift API is not reachable or the cluster is not Available."
+
+    # --- OpenShift Virtualization (CNV) --------------------------------
+    - name: Look up the HyperConverged custom resource
+      kubernetes.core.k8s_info:
+        api_version: hco.kubevirt.io/v1beta1
+        kind: HyperConverged
+        name: kubevirt-hyperconverged
+        namespace: "{{ cnv_namespace }}"
+      register: r_hco
+
+    - name: Assert OpenShift Virtualization (CNV) is Available
+      ansible.builtin.assert:
+        that:
+          - r_hco.resources | default([]) | length > 0
+          - >-
+            r_hco.resources[0].status.conditions
+            | selectattr('type', 'equalto', 'Available')
+            | selectattr('status', 'equalto', 'True')
+            | list | length > 0
+        success_msg: "OpenShift Virtualization (HyperConverged) is deployed and Available."
+        fail_msg: >-
+          OpenShift Virtualization (HyperConverged) is missing or not Available
+          in {{ cnv_namespace }}.
+
+    # --- OpenShift Data Foundation (ODF) -------------------------------
+    - name: Look up the ODF StorageCluster
+      kubernetes.core.k8s_info:
+        api_version: ocs.openshift.io/v1
+        kind: StorageCluster
+        namespace: "{{ odf_namespace }}"
+      register: r_storagecluster
+
+    - name: Assert the ODF StorageCluster is Ready
+      ansible.builtin.assert:
+        that:
+          - r_storagecluster.resources | default([]) | length > 0
+          - r_storagecluster.resources[0].status.phase | default('') == 'Ready'
+        success_msg: "ODF StorageCluster is Ready."
+        fail_msg: "ODF StorageCluster is missing or not Ready in {{ odf_namespace }}."
+
+    - name: Confirm the lab default StorageClass exists
+      kubernetes.core.k8s_info:
+        api_version: storage.k8s.io/v1
+        kind: StorageClass
+        name: "{{ default_storage_class }}"
+      register: r_storageclass
+
+    - name: Assert the default StorageClass is present
+      ansible.builtin.assert:
+        that: r_storageclass.resources | default([]) | length > 0
+        success_msg: "Default StorageClass {{ default_storage_class }} is present."
+        fail_msg: >-
+          Default StorageClass {{ default_storage_class }} is missing —
+          VM disk provisioning will fail.
+
+    # --- Migration Toolkit for Virtualization (MTV) --------------------
+    - name: Look up the MTV ForkliftController
+      kubernetes.core.k8s_info:
+        api_version: forklift.konveyor.io/v1beta1
+        kind: ForkliftController
+        namespace: "{{ mtv_namespace }}"
+      register: r_forklift
+
+    - name: Assert the MTV ForkliftController is deployed
+      ansible.builtin.assert:
+        that: r_forklift.resources | default([]) | length > 0
+        success_msg: "Migration Toolkit for Virtualization (ForkliftController) is deployed."
+        fail_msg: >-
+          Migration Toolkit for Virtualization (ForkliftController) is missing
+          in {{ mtv_namespace }}.
+
+    # --- OADP (backup and recovery) ------------------------------------
+    # The OADP operator is deployed per-user (oadp-<user>) in multi-user mode,
+    # so a namespace-scoped check is unreliable here. Presence of the OADP
+    # CRDs is the operator-level signal that backup/recovery will work.
+    - name: Confirm the OADP CRDs are installed
+      kubernetes.core.k8s_info:
+        api_version: apiextensions.k8s.io/v1
+        kind: CustomResourceDefinition
+        name: dataprotectionapplications.oadp.openshift.io
+      register: r_oadp_crd
+
+    - name: Assert OADP is installed
+      ansible.builtin.assert:
+        that: r_oadp_crd.resources | default([]) | length > 0
+        success_msg: "OADP is installed (DataProtectionApplication CRD present)."
+        fail_msg: >-
+          OADP is not installed — DataProtectionApplication CRD missing.
+          The backup and recovery module will fail.
+
+    - name: Report overall health
       ansible.builtin.debug:
-        msg: "Replace this task with checks that verify the environment is ready"
+        msg: "Health check passed — OCP API, CNV, ODF, MTV and OADP are all ready."

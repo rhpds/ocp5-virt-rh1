@@ -1,13 +1,261 @@
 ---
-# E2E — End-to-end test
-# Runs all module solve + validate sequences to verify the full lab
-# works from start to finish without manual intervention.
+# e2e.yml — End-to-end test
+# OpenShift 5 Virtualization Reimagined (RHDPCD-1236 / LB2076)
+#
+# Walks the lab module by module (nav order) and asserts the representative
+# end-state objects a completed run should produce, so regressions in the
+# environment or content surface before learners hit them.
+#
+# FIRST PASS — scope and assumptions (author to extend):
+#   * This repo has no per-module solve/validate scripts (no runtime-automation/
+#     dir), so this cannot drive the console UI. It validates the Kubernetes
+#     objects each module leaves behind, assuming the module steps have run.
+#   * Resource/VM/namespace names are taken from the module content
+#     (fedora01, fedora02, flatnetwork, winweb01/02, vmexamples-/vmimported-/
+#     oadp- namespaces). Several Kubernetes API versions (snapshots,
+#     instancetypes, forklift) can shift between releases — confirm against the
+#     deployed cluster.
+#   * `lab_user` must match the provisioned user suffix. Override on the CLI:
+#       ansible-playbook qa-automation/e2e.yml -e lab_user=user1
+#   * Steps that are UI-only or non-deterministic (live migration target node,
+#     VNC/SSH console access, interactive MTV demos) are noted with TODO rather
+#     than asserted — wire these up with the real solve flow.
+#
+# Authentication comes from the KUBECONFIG environment variable.
+# Exit 0 = the validated lab end-state is present and healthy.
 
 - name: "End-to-End Test"
   hosts: localhost
   connection: local
   gather_facts: false
+
+  vars:
+    # TODO: confirm the provisioned user suffix for the environment under test.
+    lab_user: "user1"
+    examples_ns: "vmexamples-{{ lab_user }}"
+    imported_ns: "vmimported-{{ lab_user }}"
+    oadp_ns: "oadp-{{ lab_user }}"
+
   tasks:
-    - name: "TODO: Implement end-to-end test sequence"
+    # =================================================================
+    # Module 01 — Virtual Machine Management
+    # Learner creates project vmexamples-<user>, builds VM fedora01 from a
+    # template, and live-migrates it.
+    # =================================================================
+    - name: "[module-01] Confirm the examples project exists"
+      kubernetes.core.k8s_info:
+        api_version: project.openshift.io/v1
+        kind: Project
+        name: "{{ examples_ns }}"
+      register: r_examples_project
+
+    - name: "[module-01] Assert the examples project is present"
+      ansible.builtin.assert:
+        that: r_examples_project.resources | default([]) | length > 0
+        success_msg: "Project {{ examples_ns }} exists."
+        fail_msg: "Project {{ examples_ns }} is missing — module-01 was not completed."
+
+    - name: "[module-01] Look up the fedora01 VirtualMachine"
+      kubernetes.core.k8s_info:
+        api_version: kubevirt.io/v1
+        kind: VirtualMachine
+        name: fedora01
+        namespace: "{{ examples_ns }}"
+      register: r_fedora01
+      retries: 30
+      delay: 10
+      until:
+        - r_fedora01.resources | default([]) | length > 0
+        - r_fedora01.resources[0].status.printableStatus | default('') == 'Running'
+
+    - name: "[module-01] Assert fedora01 is Running"
+      ansible.builtin.assert:
+        that:
+          - r_fedora01.resources | default([]) | length > 0
+          - r_fedora01.resources[0].status.printableStatus | default('') == 'Running'
+        success_msg: "VM fedora01 is Running in {{ examples_ns }}."
+        fail_msg: "VM fedora01 is missing or not Running in {{ examples_ns }}."
+      # TODO: live migration leaves no stable end-state marker on the VM;
+      # extend with a VirtualMachineInstanceMigration check once solve is wired.
+
+    # =================================================================
+    # Module 02 — Storage Management
+    # Learner inspects the fedora01 PVC, snapshots it, and clones the VM to
+    # fedora02.
+    # =================================================================
+    - name: "[module-02] Confirm the fedora01 PVC exists"
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: PersistentVolumeClaim
+        name: fedora01
+        namespace: "{{ examples_ns }}"
+      register: r_fedora01_pvc
+
+    - name: "[module-02] Assert the fedora01 PVC is Bound"
+      ansible.builtin.assert:
+        that:
+          - r_fedora01_pvc.resources | default([]) | length > 0
+          - r_fedora01_pvc.resources[0].status.phase | default('') == 'Bound'
+        success_msg: "PVC fedora01 is Bound."
+        fail_msg: "PVC fedora01 is missing or not Bound in {{ examples_ns }}."
+
+    - name: "[module-02] Confirm the fedora02 clone exists"
+      kubernetes.core.k8s_info:
+        api_version: kubevirt.io/v1
+        kind: VirtualMachine
+        name: fedora02
+        namespace: "{{ examples_ns }}"
+      register: r_fedora02
+
+    - name: "[module-02] Assert the fedora02 clone is present"
+      ansible.builtin.assert:
+        that: r_fedora02.resources | default([]) | length > 0
+        success_msg: "Cloned VM fedora02 exists in {{ examples_ns }}."
+        fail_msg: "Cloned VM fedora02 is missing — module-02 clone step not completed."
+      # TODO: confirm VirtualMachineSnapshot apiVersion (snapshot.kubevirt.io)
+      # on the deployed cluster, then assert the snapshot created in this module.
+
+    # =================================================================
+    # Module 03 — Backup and Recovery for Virtual Machines (OADP)
+    # Learner backs up fedora02 (backup-fedora02) and restores it
+    # (restore-fedora02) in the oadp-<user> namespace.
+    # =================================================================
+    - name: "[module-03] Look up the fedora02 Velero backup"
+      kubernetes.core.k8s_info:
+        api_version: velero.io/v1
+        kind: Backup
+        name: backup-fedora02
+        namespace: "{{ oadp_ns }}"
+      register: r_backup
+
+    - name: "[module-03] Assert the backup Completed"
+      ansible.builtin.assert:
+        that:
+          - r_backup.resources | default([]) | length > 0
+          - r_backup.resources[0].status.phase | default('') == 'Completed'
+        success_msg: "Backup backup-fedora02 Completed."
+        fail_msg: "Backup backup-fedora02 is missing or did not Complete in {{ oadp_ns }}."
+
+    - name: "[module-03] Look up the fedora02 Velero restore"
+      kubernetes.core.k8s_info:
+        api_version: velero.io/v1
+        kind: Restore
+        name: restore-fedora02
+        namespace: "{{ oadp_ns }}"
+      register: r_restore
+
+    - name: "[module-03] Assert the restore Completed"
+      ansible.builtin.assert:
+        that:
+          - r_restore.resources | default([]) | length > 0
+          - r_restore.resources[0].status.phase | default('') == 'Completed'
+        success_msg: "Restore restore-fedora02 Completed."
+        fail_msg: "Restore restore-fedora02 is missing or did not Complete in {{ oadp_ns }}."
+
+    # =================================================================
+    # Module 04 — Network Management for Virtual Machines
+    # Learner creates the "flatnetwork" NetworkAttachmentDefinition and
+    # attaches fedora01/fedora02 to it, then explores User Defined Networks.
+    # =================================================================
+    - name: "[module-04] Confirm the flatnetwork NetworkAttachmentDefinition exists"
+      kubernetes.core.k8s_info:
+        api_version: k8s.cni.cncf.io/v1
+        kind: NetworkAttachmentDefinition
+        name: flatnetwork
+        namespace: "{{ examples_ns }}"
+      register: r_nad
+
+    - name: "[module-04] Assert the flatnetwork NAD is present"
+      ansible.builtin.assert:
+        that: r_nad.resources | default([]) | length > 0
+        success_msg: "NetworkAttachmentDefinition flatnetwork exists in {{ examples_ns }}."
+        fail_msg: "NetworkAttachmentDefinition flatnetwork is missing — module-04 not completed."
+      # TODO: assert the secondary interface is wired on fedora01/fedora02 and,
+      # for OCP5, that a UserDefinedNetwork object is present.
+
+    # =================================================================
+    # Module 05 — Template and InstanceType Management
+    # Learner clones/customizes a template, builds a Windows VM template, and
+    # explores instance types.
+    # =================================================================
+    - name: "[module-05] List VirtualMachineClusterInstancetypes (sanity check)"
+      kubernetes.core.k8s_info:
+        api_version: instancetype.kubevirt.io/v1beta1
+        kind: VirtualMachineClusterInstancetype
+      register: r_instancetypes
+
+    - name: "[module-05] Assert built-in instance types are available"
+      ansible.builtin.assert:
+        that: r_instancetypes.resources | default([]) | length > 0
+        success_msg: >-
+          {{ r_instancetypes.resources | length }} cluster instance types are
+          available for module-05.
+        fail_msg: "No VirtualMachineClusterInstancetypes found — module-05 cannot proceed."
+      # TODO: the custom template and Windows template names are learner-chosen
+      # in the content; confirm the expected names and assert them here.
+
+    # =================================================================
+    # Module 06 — Migrating Existing Virtual Machines (MTV)
+    # Learner migrates VMs from VMware into the vmimported-<user> namespace.
+    # =================================================================
+    - name: "[module-06] Confirm the imported-VMs project exists"
+      kubernetes.core.k8s_info:
+        api_version: project.openshift.io/v1
+        kind: Project
+        name: "{{ imported_ns }}"
+      register: r_imported_project
+
+    - name: "[module-06] Assert the imported-VMs project is present"
+      ansible.builtin.assert:
+        that: r_imported_project.resources | default([]) | length > 0
+        success_msg: "Project {{ imported_ns }} exists."
+        fail_msg: "Project {{ imported_ns }} is missing — MTV pre-seed/migration not completed."
+
+    - name: "[module-06] Confirm at least one VM exists in the imported namespace"
+      kubernetes.core.k8s_info:
+        api_version: kubevirt.io/v1
+        kind: VirtualMachine
+        namespace: "{{ imported_ns }}"
+      register: r_imported_vms
+
+    - name: "[module-06] Assert migrated/pre-seeded VMs are present"
+      ansible.builtin.assert:
+        that: r_imported_vms.resources | default([]) | length > 0
+        success_msg: >-
+          {{ r_imported_vms.resources | length }} VM(s) present in {{ imported_ns }}.
+        fail_msg: "No VMs found in {{ imported_ns }} — MTV migration produced no result."
+      # TODO: assert the MTV Provider and Plan (forklift.konveyor.io) reached a
+      # succeeded state once vCenter connectivity is confirmed in the env.
+
+    # =================================================================
+    # Module 07 — Working with Virtual Machines and Applications
+    # Learner exposes VM-hosted apps (MTV-imported and staged VMs) with a
+    # Service and a Route.
+    # =================================================================
+    - name: "[module-07] List Services in the imported namespace"
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Service
+        namespace: "{{ imported_ns }}"
+      register: r_services
+
+    - name: "[module-07] List Routes in the imported namespace"
+      kubernetes.core.k8s_info:
+        api_version: route.openshift.io/v1
+        kind: Route
+        namespace: "{{ imported_ns }}"
+      register: r_routes
+
+    - name: "[module-07] Assert an application Service and Route were created"
+      ansible.builtin.assert:
+        that:
+          - r_services.resources | default([]) | length > 0
+          - r_routes.resources | default([]) | length > 0
+        success_msg: "At least one Service and Route exist in {{ imported_ns }} for VM-hosted apps."
+        fail_msg: "Expected Service and Route for the exposed VM app are missing in {{ imported_ns }}."
+      # TODO: the staged-VM section uses a second namespace; confirm its name and
+      # add the matching Service/Route assertions.
+
+    - name: Report overall e2e result
       ansible.builtin.debug:
-        msg: "Replace this task with your e2e test implementation"
+        msg: "E2E first-pass passed — validated lab end-state across modules 01-07."
