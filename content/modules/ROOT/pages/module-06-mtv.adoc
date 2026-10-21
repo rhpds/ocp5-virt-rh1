@@ -141,7 +141,7 @@ image::2026_summer/module-02-mtv/09_VM_List.png[link=self, window=blank, width=1
 +
 image::2026_spring/module-02-mtv/10a_Mig_Plan_Net.png[link=self, window=blank, width=100%]
 
-. On the next screen you will be tasked with providing storage details for your migration plan. Select the radio button to *Use new storage map*, then from the Source storage dropdowns make sure that the workload share from the VMware vSphere environment is listed, and from the Target storage dropdowns the default storage class *ocs-external-storagecluster-ceph-rbd* are selected for both. Finally, fill in the Storage map name with *default-storage-map* and click the *Next* button.
+. On the next screen you will be tasked with providing storage details for your migration plan. Select the radio button to *Use new storage map*, then from the Source storage dropdowns make sure that the workload share from the VMware vSphere environment is listed, and from the Target storage dropdowns the default storage class *ocs-external-storagecluster-ceph-rbd-virtualization* are selected for both. Finally, fill in the Storage map name with *default-storage-map* and click the *Next* button.
 +
 image::2026_summer/module-02-mtv/10b_Mig_Plan_Stor.png[link=self, window=blank, width=100%]
 

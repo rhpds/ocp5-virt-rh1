@@ -35,7 +35,7 @@ image::2026_spring/module-03-storage/01_PVC_List.png[link=self, window=blank, wi
 .. The PVC has a requested capacity and size of 30GiB
 .. The Access mode of the PVC is ReadWriteMany (RWX)
 .. The Volume mode of the PVC is Block
-.. The volume is using the *ocs-external-storagecluster-ceph-rbd* storage class.
+.. The volume is using the *ocs-external-storagecluster-ceph-rbd-virtualization* storage class.
 +
 image::2026_spring/module-03-storage/02_Fedora01_PVC_Details.png[link=self, window=blank, width=100%]
 
