@@ -116,15 +116,17 @@ image::2026_spring/module-04-bcdr/08_Delete_VM.png[link=self, window=blank, widt
 +
 image::2026_spring/module-04-bcdr/09_Confirm_Delete.png[link=self, window=blank, width=100%]
 
-. The virtual machine will disappear from your inventory.
+. The virtual machine will disappear from your inventory. Click on the *vmexamples-{user}* project, and the *Virtual machines* tab at the top to ensure you no longer see it.
 +
 image::2026_spring/module-04-bcdr/10_Deleted_VM.png[link=self, window=blank, width=100%]
 
 . Click on *Ecosystem* and then *Installed Operators* and select the *OADP Operator* once again. (You may need to switch back to the *OADP-{user}* project.)
++
+image::2026_spring/module-04-bcdr/11_Switch_Back_OADP.png[link=self, window=blank, width=100%]
 
 . Use the horizontal navigation bar to locate the the *Restore* tab, click the *Restore* tab, and then press *Create Restore*.
 +
-image::2026_spring/module-04-bcdr/11_Restore_Tab.png[link=self, window=blank, width=100%]
+image::2026_spring/module-04-bcdr/12_Restore_Tab.png[link=self, window=blank, width=100%]
 
 . Switch to the YAML view and replace the content with the following one:
 +
@@ -150,15 +152,15 @@ spec:
 
 . Press the *Create* button at the bottom.
 +
-image::2026_spring/module-04-bcdr/12_Create_Restore_YAML.png[link=self, window=blank, width=100%]
+image::2026_spring/module-04-bcdr/13_Create_Restore_YAML.png[link=self, window=blank, width=100%]
 
 . Wait until you see that the *Status* column changes to *Completed*.
 +
-image::2026_spring/module-04-bcdr/13_Restore_Completed.png[link=self, window=blank, width=100%]
+image::2026_spring/module-04-bcdr/14_Restore_Completed.png[link=self, window=blank, width=100%]
 
 . Navigate back to *Virtualization* and click  *Virtual Machines* in the left-side menu and confirm that the *fedora02* virtual machine was restored (in the *vmexamples-{user}* project). You can see it's *Created* value should be a quite short time ago.
 +
-image::2026_spring/module-04-bcdr/14_VM_Restored.png[link=self, window=blank, width=100%]
+image::2026_spring/module-04-bcdr/15_VM_Restored.png[link=self, window=blank, width=100%]
 
 == Summary
 
