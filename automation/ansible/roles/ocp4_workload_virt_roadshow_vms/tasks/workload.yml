@@ -1,4 +1,7 @@
 ---
+- name: Configure the default storage class for snapshot restores
+  ansible.builtin.include_tasks: storage.yml
+
 - name: Preload shared Windows installation media
   ansible.builtin.include_tasks: windows_iso.yml
 
