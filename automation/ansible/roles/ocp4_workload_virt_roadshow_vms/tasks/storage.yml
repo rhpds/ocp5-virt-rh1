@@ -1,0 +1,35 @@
+---
+- name: Wait for the virtualization storage class
+  kubernetes.core.k8s_info:
+    api_version: storage.k8s.io/v1
+    kind: StorageClass
+    name: ocs-external-storagecluster-ceph-rbd-virtualization
+  register: r_virtualization_storage_class
+  until: r_virtualization_storage_class.resources | length > 0
+  retries: 30
+  delay: 10
+
+- name: Ensure the virtualization storage class uses immediate binding
+  ansible.builtin.assert:
+    that:
+      - r_virtualization_storage_class.resources[0].volumeBindingMode == 'Immediate'
+    fail_msg: The virtualization storage class must use Immediate binding for snapshot restores.
+
+- name: Make the virtualization storage class the cluster default
+  kubernetes.core.k8s:
+    state: patched
+    api_version: storage.k8s.io/v1
+    kind: StorageClass
+    name: "{{ storage_class.name }}"
+    definition:
+      metadata:
+        annotations:
+          storageclass.kubernetes.io/is-default-class: "{{ storage_class.is_default }}"
+  loop:
+    - name: ocs-external-storagecluster-ceph-rbd
+      is_default: "false"
+    - name: ocs-external-storagecluster-ceph-rbd-virtualization
+      is_default: "true"
+  loop_control:
+    loop_var: storage_class
+    label: "{{ storage_class.name }}"
