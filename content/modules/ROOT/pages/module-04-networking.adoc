@@ -2,49 +2,68 @@
 
 == Introduction
 
-As mentioned earlier in this workshop, all virtual machines are attached to the OpenShift software-defined network (SDN) by default, which enables access from other workloads on the OpenShift cluster, including other VMs and any OpenShift native applications, and for the virtual machines and the applications they host to be managed in a more modernized workflow.
+As mentioned earlier in this workshop, all virtual machines are attached to the default OpenShift pod network like any other pod-based applications deployed in the cluster. This network is created and managed using the OVN-Kubernetes Container Network Interface (CNI) plugin, and is built on the technologies of Open Virtual Network (OVN) and Open vSwitch (OVS). Connecting virtual machines to this network enables access from other workloads on the OpenShift cluster, including other VMs and any OpenShift native applications, and for the virtual machines and the applications they host to be managed in a more modernized workflow.
 
-* The SDN provides additional features for abstracting, connecting, and exposing applications in a controlled manner, whether deployed as VMs or Pods in the cluster. These include the *Service* and *Route* features of OpenShift which we will explore in another module.
+* The SDN provides additional features for abstracting, connecting, and exposing applications in a controlled manner, whether deployed as VMs or Pods in the cluster. These include the *Service* and *Route* features of OpenShift which we will explore in a later module.
 * OpenShift's network policy engine allows the VM user or administrator to create rules which allow or deny network traffic to and from individual VMs or entire projects/namespaces.
 
-However, it is also possible for virtual machines to connect directly to one or more physical networks, such as untagged network or VLANs, when needed. This is in addition to the SDN, which means that, for example, the administrator can connect to the VM from an external IP address and VMs can connect directly using a Layer2 network.
+Within OpenShift. it is also possible for virtual machines to connect directly to one or more physical networks, such as untagged network or VLANs, when needed. This is in addition to the SDN, which means that, for example, the administrator can connect to the VM from an external IP address and VMs can connect directly using a Layer2 network. This is much more similar to the experience that other hypervisor products provide to their end users when configuring networks.
 
-At a high level, this is done by configuring the host networking, such as a Linux bridge. This workshop segment will walk through the next step in that process, creating a network attachment definition to allow VMs to connect to that bridge and, therefore, directly to the physical network. 
+At a high level, configuring virtual machine networking in this manner begins by configuring the host networking, such as a Linux bridge and then addtional virtual networks underneath. The first part of this workshop segment will walk through the next step in that process, creating a network attachment definition to allow VMs to connect to that bridge and, therefore, directly to the physical network. 
 
 NOTE: The OpenShift environment has already been configured with a Linux Bridge on each compute node your virtual machines will connect to, thus allowing for easy connectivity with/from outside network resources.
+
+In addition to the manual configuration of network attachment definitons, OpenShift has a feature called User-defined Networks (UDN) which allow users to create private network ranges inside the cluster, and route them externally, ensuring the secure isolation of managed projects including those that contain virtual machines.
+
+Also, lets not forget that OpenShift has a rich catalog of networking partners that provide expanded features like enhanced security, network segmentation, and centralized management. If you'd like to read more about any of these partners and their Container Native Interface (CNI) Plugins, please check out the partner calalog https://www.redhat.com/en/technologies/cloud-computing/openshift/virtualization/partners#networking[here^].
+
+While there are many different networking needs and various networking topologies deployed throughout the OpenShift customer base, keep in mind that there are many options as to how best to configure your network for your particular use case. This lab will demonstrate two specific network configuration scenarios and how they enable connectivity for virtual machines in Red Hat OpenShift. If you have specific networking questions outside of the scope of this lab, please feel free to reach out to your Red Hat support team.
 
 [[review]]
 == Review Environment
 
+Now that we've had that brief introduction to Networking in OpenShift Virtualizaiton, lets get started configuring networks for our VMs.
+
 The *Kubernetes NMState Operator* provides a Kubernetes API for performing state-driven network configuration across the OpenShift cluster's nodes. It provides users with functionality to configure various network interface types, DNS, and routing on cluster nodes. Additionally, the daemons on the cluster nodes periodically report on the state of each node's network interfaces to the API server.
 
-. In the left-side menu, click on *Networking* and then *Node network configuration* to review the current configuration. You can explore the screen at your leisure, notice that controlplane nodes are in trapezoidal shapes, and worker nodes are in rectangular shapes.
+. In the left-side menu, return to the *Virtualization* perspective, then click on *Networking* and then *Node network configuration* to review the current configuration of the OpenShift cluster. You will be presented with a graphical representation of the cluster's network, with the control plane nodes at the top and the worker nodes at the bottom.
 +
-image::2026_spring/module-06-networking/01_NodeNetworkState_Graph.png[link=self, window=blank, width=100%]
+image::ocp5/module-04-networking/00_NodeNetworkState_Graph.png[link=self, window=blank, width=100%]
 
-. Zoom in on one of the worker nodes so that you can see each interface that is connected and what they currently map to in the OpenShift cluster. Explore each interface at your leisure.
+. Click on the filter button at the top and select a specific worker node. You can zoom in on it so that you can see each logical network in the cluster, and which physical adapters they are connected to.
 +
-image::2026_spring/module-06-networking/02_NodeNetworkState_Zoom.png[link=self, window=blank, width=100%]
+image::ocp5/module-04-networking/01_NodeNetworkState_Zoom.png[link=self, window=blank, width=100%]
 
-. As stated, you will notice that the worker nodes have a linux bridge already configured to be used for this module. Click on the bridge *br-flat* to gather more information about it.
+. For more detailed information on each of these connections, click on the icon in the upper right corner to see the NodeNetworkState in an expandable list format.
 +
-image::2026_spring/module-06-networking/02a_NodeNetworkState_Info.png[link=self, window=blank, width=100%]
+image::ocp5/module-04-networking/02_List_Toggle.png[link=self, window=blank, width=100%]
 
-. Close the bridge details by clicking on the X in the corner. This bridge named *br-flat* was created using the *Kubernetes NMState Operator*. Click on *NodeNetworkConfigurationPolicy* in the left-side menu to explore more.
+. This screen provides information about each node in a list form. You can expand each node, and each connection type to see specific details about each.
 +
-image::2026_spring/module-06-networking/03_NodeNetworkConfigurationPolicy_List.png[link=self, window=blank, width=100%]
+image::ocp5/module-04-networking/02a_Node_Network_State_List.png[link=self, window=blank, width=100%]
 
-. Select *br-flat* to get information 
+. Expand one of the worker nodes and it's connections. Click on the linux-bridge named *br-flat* to gather more information about it.
 +
-image::2026_spring/module-06-networking/04_NodeNetworkConfigurationPolicy_Info.png[link=self, window=blank, width=100%]
+image::ocp5/module-04-networking/03_Linux_Bridge_Details.png[link=self, window=blank, width=100%]
 
+. Click on the *X* in the corner to close this window.
+
+. Each of the network devices in this list are configured and controlled by the *Kubernetes NMState Operator*. Click on *NodeNetworkConfigurationPolicy* in the left-side menu to explore more. You will see the linux-bridge *br-flat* is available here again, and it's policy is applied to each node in the cluster.
++
+image::ocp5/module-04-networking/04_NodeNetworkConfigurationPolicy_List.png[link=self, window=blank, width=100%]
+
+. Select *br-flat* to get more information about how it's policy is configured.
++
+image::ocp5/module-04-networking/05_NodeNetworkConfigurationPolicy_Info.png[link=self, window=blank, width=100%]
++
 NOTE: As the *NodeNetworkConfigurationPolicy* performs configurations at the node-level you cannot modify these options with your current user account. As a result, it prompts you to contact your administrator.
 
-. To see how this bridge was created, you can switch to *YAML* to see the definition. As an administrator, you could create your a similar bridge with the yaml snippet below.
+. To see how this bridge was created, you can switch to *YAML* to see the definition.
 +
-image::2026_spring/module-06-networking/05_NodeNetworkConfigurationPolicy_YAML.png[link=self, window=blank, width=100%]
+image::ocp5/module-04-networking/06_NodeNetworkConfigurationPolicy_YAML.png[link=self, window=blank, width=100%]
 
-////
+. As an administrator on your own cluster, you could create a similar bridge with the yaml snippet below.
++
 [source,yaml]
 ----
 apiVersion: nmstate.io/v1
@@ -68,18 +87,17 @@ spec:
         state: up
         type: linux-bridge
 ----
-////
 
 [[nad]]
 == Create Network Attachment Definition
 
 In order to use the Linux Bridge with your VM you need to create a *Network Attachment Definition*. This is what tells OpenShift about the network and allows the virtual machines to connect to it. Network Attachment Definitions are project scoped, to the project that they are created in and are only accessible to the virtual machines that are deployed in that project. If a Network Attachment Definition is created in the *default* project, then it becomes available globally. This gives you, the administrator, the ability to control which networks are and aren't available to specific users who have access to manage their own VMs.
 
-NOTE: A network attachment definition instructs Openshift to use an existing network device. In our case that device was previously created and is named *br-flat*. You must use that name or OpenShift won’t be able to place your VM on any compute nodes as it can only use nodes where that specifically named network device exists.
+NOTE: A network attachment definition instructs Openshift to use an existing network device. In our lab environment that device has already been created, and is the linux-bridge named *br-flat*. You must use that name or OpenShift won’t be able to place your VMs that rely on that network, as no host will match the request, and it can only place VMs on nodes where that specifically named network device exists.
 
 . From the left-side menu, select *Networking* followed by *Network Attachment Definitions* and click the *Create network attachment definition* button.
 +
-image::2026_spring/module-06-networking/06_NetworkAttachDefinition_Create.png[link=self, window=blank, width=100%]
+image::ocp5/module-04-networking/07_NetworkAttachDefinition_Create.png[link=self, window=blank, width=100%]
 +
 
 IMPORTANT: Ensure that you are in your vmexamples-{user} project when creating the network attachment definition.
@@ -89,39 +107,41 @@ IMPORTANT: Ensure that you are in your vmexamples-{user} project when creating t
 * *Network Type*: Linux bridge
 * *Bridge Name*: br-flat
 +
-image::2026_spring/module-06-networking/07_NetworkAttachDefinition_Create_Form.png[link=self, window=blank, width=100%]
+image::ocp5/module-04-networking/08_NetworkAttachDefinition_Create_Form.png[link=self, window=blank, width=100%]
 +
 NOTE: A single OVS or Linux bridge on the host can have many different VLANs associated with it. You do this by creating a Network Attachment Definition for each VLAN desired instead of creating separate host interfaces and bridges. Our lab uses an untagged network, so no VLAN number is required for this exercise.
 
 . Examine the details of the network attachment definition. Because this was created in the *vmexamples-{user}* project, it will not be available in other projects.
 +
-image::2026_spring/module-06-networking/08_NetworkAttachDefinition_Created.png[link=self, window=blank, width=100%]
+image::ocp5/module-04-networking/09_NetworkAttachDefinition_Created.png[link=self, window=blank, width=100%]
 
 [[attach]]
 == Attach Virtual Machine to Network
-. Navigate to *Virtualization -> VirtualMachines* in the left-side menu and select the *fedora01* VM from the central column. Click *Configuration* tab and then click the *Network* left tab:
+. Navigate to *VirtualMachines* in the left-side menu and select the *fedora01* VM from the central column. Click *Configuration* tab and then click the *Network* left tab:
 +
-image::2026_spring/module-06-networking/09_VM_Network_Tab.png[link=self, window=blank, width=100%]
+image::ocp5/module-04-networking/10_VM_Network_Tab.png[link=self, window=blank, width=100%]
 
 . Click *Add Network Interface*, complete the form as shown, then click *Save*.
 +
-image::2026_spring/module-06-networking/10_VM_Network_Attach.png[link=self, window=blank, width=100%]
-+
-NOTE: Because this is a bridge connecting to the external network, we don't need to rely on any OpenShift features or capabilities to enable access, such as masquerade (NAT) for the virtual machines using the network. As a result, the *type* should be set to *Bridge* here.
+image::ocp5/module-04-networking/11_VM_Network_Attach.png[link=self, window=blank, width=100%]
 
-. Use the *Actions -> Control* menu or the *Start* button to start the VM, and switch to the *Console* tab to watch it boot up. 
+. You will see a prompt about this being a *Pending* change, and that a migration is required. In OpenShift Virtualizaiton, a hot-modification of a network adapter is a supported operation, but it requires that the VM live-migrate to modify the resource requests of the pod hosting the VM.
 +
-image::2026_spring/module-06-networking/11_VM_Network_Startup.png[link=self, window=blank, width=100%]
-+
-The *enp2s0* interface obtains an IP address from the flat network (*192.168.64.0/18*) that we connected to, as there is a DHCP server there providing addresses.
-+
-image::2026_spring/module-06-networking/12_VM_Network_Console.png[link=self, window=blank, width=100%]
+image::ocp5/module-04-networking/12_VM_Network_Pending.png[link=self, window=blank, width=100%]
 
-. Repeat the actions to attach the fedora02 VM to the same *flatnetwork* network. 
-
-. Use the *ping* command in the console to demonstrate direct communication between your two VMs (fedora01 and fedora02).
+. After a few moments, the live migration will complete and you will see that the new adapter is successfully connected to the VM.
 +
-image::2026_spring/module-06-networking/13_VM_Network_Ping.png[link=self, window=blank, width=100%]
+image::ocp5/module-04-networking/12a_VM_Network_Connected.png[link=self, window=blank, width=100%]
+
+. Click on the *Console* tab at the top. The *enp2s0* interface automatically obtains an IP address from the flat network (*192.168.64.0/18*) that we connected to, as our lab environment has a DHCP server available there providing addresses.
++
+image::ocp5/module-04-networking/13_VM_Network_Console.png[link=self, window=blank, width=100%]
+
+. Repeat the actions to attach the *fedora02* VM to the same *flatnetwork* network as well. It will go through the same process of live migration to hot-add the network adapter.
+
+. Once it is connected, access the console again, and make use of the *ping* command to demonstrate direct communication between your two VMs (fedora01 and fedora02).
++
+image::ocp5/module-04-networking/14_VM_Network_Ping.png[link=self, window=blank, width=100%]
 
 [[udn]]
 == User Defined Networks
@@ -170,15 +190,15 @@ This task has to be performed by a cluster administrator. In our lab, you have b
 
 . Navigate to *Networking* and then click on *UserDefinedNetworks* and ensure you select the project *vmexamples-{user}-udn*, and click the *Create UserDefinedNetwork* button.
 +
-image::2026_spring/module-06-networking/14_UDN_List.png[link=self, window=blank, width=100%]
+image::ocp5/module-04-networking/15_UDN_List.png[link=self, window=blank, width=100%]
 
 . Select the current project *vmexamples-{user}-udn* from the dropdown list, and add the subnet *192.168.254.0/24* and press *Create*.
 +
-image::2026_spring/module-06-networking/16_UDN_Form.png[link=self, window=blank, width=100%]
+image::ocp5/module-04-networking/16_UDN_Form.png[link=self, window=blank, width=100%]
 
 . Review the configuration of the UDN just created.
 +
-image::2026_spring/module-06-networking/17_UDN_Created.png[link=self, window=blank, width=100%]
+image::ocp5/module-04-networking/17_UDN_Created.png[link=self, window=blank, width=100%]
 +
 * The Default name when it's created using the form is *primary-udn*.
 * By default the Network Topology is Layer 2 (Currently only Layer 2 and LocalNet are supported for OpenShift Virtualization).
@@ -187,28 +207,39 @@ image::2026_spring/module-06-networking/17_UDN_Created.png[link=self, window=bla
 
 . Now navigate to *Networking -> NetworkAttachmentDefinitions* on the left-side menu and see that the associated NAD has been automatically created.
 +
-image::2026_spring/module-06-networking/18_UDN_NAD.png[link=self, window=blank, width=100%]
+image::ocp5/module-04-networking/18_UDN_NAD.png[link=self, window=blank, width=100%]
 
 . Creating a Virtual Machine that is attached to a Primary UserDefinedNetwork is as simple as creating a machine from a template or instancetype in the project where the primary UDN is defined. The UDN replaces the default (pod) network as found in other projects that are not enabled for UDN support. To test this, lets create one now.
 
-. Click on *Virtualization -> VirtualMachines* in the left-side navigation menu, select the *vmexamples-{user}-udn* project, click the *Create VirtualMachine* button, and select *From InstanceType* from the dropdown menu.
+. Click on *VirtualMachines* in the left-side navigation menu, ensure that the toggle is turned off for *Show only projects with VirtualMachines* so that we can see our *vmexamples-{user}-udn* project. Highlight the project and click the , click the *Create* button in the upper right corner.
 +
-image::2026_spring/module-06-networking/19_Create_UDN_VM.png[link=self, window=blank, width=100%]
+image::ocp5/module-04-networking/19_Create_UDN_VM.png[link=self, window=blank, width=100%]
 
-. Select the *fedora* instancetype, leave all the other options as defaults, then scroll to the bottom and click the *Create VirtualMachine* button.
+. Select the tile for *Create from Template*, name the virtual machine *rhel-udn*, confirm that the location is still the *vmexamples-{user}-udn* project, and click the *Next* button.
 +
-image::2026_spring/module-06-networking/20a_Fedora_InstanceType.png[link=self, window=blank, width=100%]
-+
-image::2026_spring/module-06-networking/20b_Create_VM.png[link=self, window=blank, width=100%]
+image::ocp5/module-04-networking/20_Create_RHEL_VM.png[link=self, window=blank, width=100%]
 
-. Switch to the *VirtualMachines* and watch at the VM is created. Once it is up and running, review the newly created virtual machine. In the *Overview* tab, the *Network* tile will show that we are attached to the default network, but it will have an IP address assigned from the UserDefinedNetwork.
+. Select the tile *rhel9-server-small* from the Templates and click the *Next* button.
 +
-image::2026_spring/module-06-networking/21_UDN_Network_Tile.png[link=self, window=blank, width=100%]
+image::ocp5/module-04-networking/21_RHEL_Template.png[link=self, window=blank, width=100%]
+
+. On the *Customization* screen, click the *Next* button, and when you reach the *Review and create* screen, click the *Create VirtualMachine* button at the bottom.
+
+. You will be taken back to the *VirtualMachines* view, and you can watch as the VM provisions and starts up. 
+
+. Once it is up and running, review the newly created virtual machine. In the *Overview* tab, the *Network* tile will show that we are attached to the default network, but it will have an IP address assigned from the UserDefinedNetwork.
++
+image::ocp5/module-04-networking/22_UDN_Network_Tile.png[link=self, window=blank, width=100%]
+
+. Switch to the *Configuration* tab, and click on the *Network* section. Notice it only shows a default connection to the *pod-network*, and not an additional interface like we attached above.
++
+image::ocp5/module-04-networking/23_UDN_Network_Config.png[link=self, window=blank, width=100%]
 
 . Switch to the Console tab and login to the VM using the provided guest credentials.
-. Ping a public website like *www.google.com* to show that we have network communication on our Primary UDN.
+
+. Use the *ping* command to test connectivity to a public website like *www.google.com* to demonstrate that we have network communication on our Primary UDN.
 +
-image::2026_spring/module-06-networking/22_UDN_Fedora_Console.png[link=self, window=blank, width=100%]
+image::ocp5/module-04-networking/24_UDN_RHEL_Console.png[link=self, window=blank, width=100%]
 +
 * The VM has assigned a IP from the subnet defined
 * The VM automatically gets the gateway configuration from the DHCP server.
