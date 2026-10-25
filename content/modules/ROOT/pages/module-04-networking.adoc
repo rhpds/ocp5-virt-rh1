@@ -62,7 +62,7 @@ NOTE: As the *NodeNetworkConfigurationPolicy* performs configurations at the nod
 +
 image::ocp5/module-04-networking/06_NodeNetworkConfigurationPolicy_YAML.png[link=self, window=blank, width=100%]
 
-. As an administrator on your own cluster, you could create a similar bridge with the yaml snippet below.
+. As an administrator on your own cluster, you could create a similar bridge with a simple yaml snippet like the one below.
 +
 [source,yaml]
 ----
@@ -125,7 +125,7 @@ image::ocp5/module-04-networking/10_VM_Network_Tab.png[link=self, window=blank, 
 +
 image::ocp5/module-04-networking/11_VM_Network_Attach.png[link=self, window=blank, width=100%]
 
-. You will see a prompt about this being a *Pending* change, and that a migration is required. In OpenShift Virtualizaiton, a hot-modification of a network adapter is a supported operation, but it requires that the VM live-migrate to modify the resource requests of the pod hosting the VM.
+. You will see a prompt about this being a *Pending* change, and that a migration is required. In OpenShift Virtualizaiton, a hot-modification of a network adapter is a supported operation, but it requires that the VM live-migrate to modify the resource requests of the pod hosting the VM. This process is automatically performed when attaching a new network device to the VM.
 +
 image::ocp5/module-04-networking/12_VM_Network_Pending.png[link=self, window=blank, width=100%]
 
@@ -137,9 +137,9 @@ image::ocp5/module-04-networking/12a_VM_Network_Connected.png[link=self, window=
 +
 image::ocp5/module-04-networking/13_VM_Network_Console.png[link=self, window=blank, width=100%]
 
-. Repeat the actions to attach the *fedora02* VM to the same *flatnetwork* network as well. It will go through the same process of live migration to hot-add the network adapter.
+. Repeat the previous steps to attach the *fedora02* VM to the same *flatnetwork* network as well. It will go through the same process of live migration to hot-add the network adapter, and then it will also be connected to the network.
 
-. Once it is connected, access the console again, and make use of the *ping* command to demonstrate direct communication between your two VMs (fedora01 and fedora02).
+. Once the second virtual machine it is connected to the network, access the console again, and make use of the *ping* command to verify connectivity between the two virtual machines on the newly attached network.
 +
 image::ocp5/module-04-networking/14_VM_Network_Ping.png[link=self, window=blank, width=100%]
 
