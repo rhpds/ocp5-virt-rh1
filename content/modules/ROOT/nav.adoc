@@ -27,9 +27,8 @@
 ** xref:module-04-networking.adoc#udn[User Defined Networks]
 
 * xref:module-05-tempinst.adoc[Template and InstanceType Management]
-** xref:module-05-tempinst.adoc#clone_customize_template[Clone and Customize a Template]
-** xref:module-05-tempinst.adoc#create_win[Create a Windows VM Template]
-** xref:module-05-tempinst.adoc#instance_types[Introduction to Instance Types]
+** xref:module-05-tempinst.adoc#create_custom_template[Create a Custom Template]
+//** xref:module-05-tempinst.adoc#create_win[Create a Windows VM Template]
 
 * xref:module-06-mtv.adoc[Migrating Existing Virtual Machines]
 ** xref:module-06-mtv.adoc#prerequisites[Prerequisites for Migrations]
