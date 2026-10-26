@@ -2,22 +2,24 @@
 
 == Introduction
 
-This portion of our lab uses the https://docs.redhat.com/en/documentation/migration_toolkit_for_virtualization/2.11/[Migration Toolkit for Virtualization^] (MTV) to import virtual machines from VMware vSphere to OpenShift. The migration toolkit supports two "modes" of import:
+Until this point we have explored OpenShift Virtualization through creating some demonstration virtual machines, just to explore it's basic capabilities, and to confirm that it operates as a hypervisor in a manner that we expect. However, just testing out the product is not the goal for a majority of customers, they need to know that they can run real production workloads on the platform, or even import existing workloads from their current hypervisor into OpenShift Virtualizaton. That is what this module of our lab is about.
 
-* Cold migration turns off the source virtual machine before starting the migration. This is the default migration type.
-* Warm migration copies data while the source virtual machine continues to run. Once the bulk of data has been migrated, the VM is shutdown and the final data is copied to the destination. The new VM can then be started, resulting in a much shorter period of downtime for the VM-hosted application.
+In this portion of our lab we use the https://docs.redhat.com/en/documentation/migration_toolkit_for_virtualization/2.12/[Migration Toolkit for Virtualization^] (MTV) to import virtual machines from VMware vSphere to OpenShift. The migration toolkit supports two "modes" of import:
+
+* *Cold migration*: turns off the source virtual machine before starting the migration. This is the default migration type.
+* *Warm migration*: copies data while the source virtual machine continues to run. Once the bulk of data has been migrated, the VM is shutdown and the final data is copied to the destination. The new VM can then be started, resulting in a much shorter period of downtime for the VM-hosted application.
 
 NOTE: The migration toolkit has already been deployed to your cluster using the Operator available in OperatorHub.
 
-Documentation for how to install and configure the Operator can be found https://docs.redhat.com/en/documentation/migration_toolkit_for_virtualization/2.11/html/installing_and_using_the_migration_toolkit_for_virtualization/installing-mtv_mtv#installing-the-operator_mtv[here^].
+Documentation for how to install and configure the Operator can be found https://docs.redhat.com/en/documentation/migration_toolkit_for_virtualization/2.12/html/planning_your_migration_to_red_hat_openshift_virtualization/assembly_installing-mtv-operator_mtv[here^].
 
 If you would like to learn more about how to configure the Migration Toolkit for Virtualization for your own needs, please see the documentation at the following links for:
 
-* https://docs.redhat.com/en/documentation/migration_toolkit_for_virtualization/2.11/html/planning_your_migration_to_red_hat_openshift_virtualization/assembly_provider-specific-requirements-for-migration_mtv#ova-prerequisites_mtv[Open Virtual Appliance (OVA)^]
-* https://docs.redhat.com/en/documentation/migration_toolkit_for_virtualization/2.11/html/planning_your_migration_to_red_hat_openshift_virtualization/assembly_provider-specific-requirements-for-migration_mtv#cnv-prerequisites_mtv[OpenShift Virtualization^]
-* https://docs.redhat.com/en/documentation/migration_toolkit_for_virtualization/2.11/html/planning_your_migration_to_red_hat_openshift_virtualization/assembly_provider-specific-requirements-for-migration_mtv#openstack-prerequisites_mtv[OpenStack^]
-* https://docs.redhat.com/en/documentation/migration_toolkit_for_virtualization/2.11/html/planning_your_migration_to_red_hat_openshift_virtualization/assembly_provider-specific-requirements-for-migration_mtv#rhv-prerequisites_mtv[Red Hat Virtualization^]
-* https://docs.redhat.com/en/documentation/migration_toolkit_for_virtualization/2.11/html/planning_your_migration_to_red_hat_openshift_virtualization/assembly_provider-specific-requirements-for-migration_mtv#vmware-prerequisites_mtv[VMware vSphere^] 
+* https://docs.redhat.com/en/documentation/migration_toolkit_for_virtualization/2.12/html/planning_your_migration_to_red_hat_openshift_virtualization/assembly_provider-specific-requirements-for-migration_mtv#ova-prerequisites_mtv[Open Virtual Appliance (OVA)^]
+* https://docs.redhat.com/en/documentation/migration_toolkit_for_virtualization/2.12/html/planning_your_migration_to_red_hat_openshift_virtualization/assembly_provider-specific-requirements-for-migration_mtv#cnv-prerequisites_mtv[OpenShift Virtualization^]
+* https://docs.redhat.com/en/documentation/migration_toolkit_for_virtualization/2.12/html/planning_your_migration_to_red_hat_openshift_virtualization/assembly_provider-specific-requirements-for-migration_mtv#openstack-prerequisites_mtv[OpenStack^]
+* https://docs.redhat.com/en/documentation/migration_toolkit_for_virtualization/2.12/html/planning_your_migration_to_red_hat_openshift_virtualization/assembly_provider-specific-requirements-for-migration_mtv#rhv-prerequisites_mtv[Red Hat Virtualization^]
+* https://docs.redhat.com/en/documentation/migration_toolkit_for_virtualization/2.12/html/planning_your_migration_to_red_hat_openshift_virtualization/assembly_provider-specific-requirements-for-migration_mtv#vmware-prerequisites_mtv[VMware vSphere^] 
 
 .*Goals*
 
@@ -47,13 +49,13 @@ A three-tier application has been deployed on VMware for you to migrate to OpenS
 
 The application consists of the following four virtual machines:
 
-* One HAproxy system that redirects traffic to the web servers.
-* One Linux system running a MariaDB database.
 * Two Microsoft Windows servers with IIS hosting a PHP application connecting to the database.
+* One Linux system running HAproxy that redirects traffic to the web servers as a load balancer.
+* One Linux system running a MariaDB database.
 
-For this lab, you will be tasked with migrating three of the four virtual machines using cold migration.
+For this lab, you will be tasked with migrating three of the four virtual machines using a cold migration.
 
-NOTE: You will not need to migrate the HAproxy (load balancer) VM because OpenShift handles network traffic and load balancing natively for VMs connected to the SDN using a *Service*.
+NOTE: You will not need to migrate the HAproxy (load balancer) VM because OpenShift handles network traffic and load balancing natively for VMs connected to the SDN using a *Service*. This will be explored in the next module.
 
 === Review the VMware environment
 
@@ -70,46 +72,15 @@ NOTE: You will not need to migrate the HAproxy (load balancer) VM because OpenSh
 </iframe>
 ++++
 
-////
-To help understand the process of mapping resources, such as datastores and port groups, from vSphere into OpenShift's equivalents, storage classes and network attachment definitions, let's begin by reviewing the source environment for the migrations.
-
-. Navigate to VMware vCenter: https://{vcenter_console}[vCenter Console^]
-. Click on *Launch vSphere Client*
-. Login with the following credentials:
-- *User:* {vcenter_full_user}
-- *Password:* {vcenter_password}
-
-. By default you'll land in the *Inventory* view at the top of the navigation tree with a message that you have no privileges to view this object. This is expected with the current user account.
-+
-image::2025_spring/module-02-mtv/00_VMware_First_Login.png[link=self, window=blank, width=100%]
-
-. Click the *Workloads* icon and expand the navigation tree until you see the folder named *Roadshow*, and the 4 VMs under it.
-+
-image::2026_spring/module-02-mtv/01_Workload_VM_List.png[link=self, window=blank, width=100%]
-+
-NOTE: The exact folder list in your lab environment may differ from the images here, but as long as you are able to find the Roadshow folder and your VMs to work with, you may proceed with the lab.
-+
-. Click on the *VMs* tab at the top of the screen to see the details of each virtual machine in the folder.
-+
-image::2026_spring/module-02-mtv/02_VM_Details.png[link=self, window=blank, width=100%]
-
-. Change to the *Networks* view, then expand the tree to view the port group used by the virtual machines. Note that the name is *segment-migrating-to-ocpvirt*.
-+
-image::2026_spring/module-02-mtv/03_vSphere_Network.png[link=self, window=blank, width=100%]
-
-. Finally, review the datastores in use by browsing to the *Datastores* view. Expand the tree to see the datastores that are attached to the *RS0x* datacenter, and optionally browse to the *VMs* sub-tab to view the capacity used by each virtual machine.
-+
-image::2026_spring/module-02-mtv/04_vSphere_Datastore.png[link=self, window=blank, width=100%]
-////
 === Review the VMware provider to the migration toolkit
 
-Now that we have completed our review of VMware vSphere and the virtual machines that reside there, you may close the window and return to your OpenShift web console.
+Now that we have taken a tour of our VMware vSphere environment, it's time to familiarize ourselves with the Migration Toolkit for Virtualization in Red Hat OpenShift. 
 
-. In the left-side menu, click on *Migration for Virtualization* and from the dropdown select *Providers*.
+. In the left-side menu of the *Virtualizaton* perspective, click on *Migration for Virtualization* and from the dropdown select *Providers*.
 
 . Select project *mtv-{user}* at the top of the page.
 +
-image::2026_summer/module-02-mtv/06_MTV_Providers.png[link=self, window=blank, width=100%]
+image::ocp5/module-06-mtv/01_MTV_Providers.png[link=self, window=blank, width=100%]
 
 By default, there is a provider called *host* which represents your current *OpenShift Virtualization* cluster as a target platform.
 
@@ -119,15 +90,15 @@ Additionally, this lab has already been configured with an additional provider n
 
 Now that we have reviewed our environment, and have our providers created, it is time for us to create a *Migration Plan*. This plan selects which VMs to migrate from VMware vSphere to Red Hat OpenShift Virtualization and specifics about how to execute the migration.
 
-. Navigate in the left menu to the *Migration for Virtualization -> Migrations plans* option and press either of the *Create Plan* buttons.
+. Navigate in the left menu to the *Migration for Virtualization -> Migrations plans* option and press either of the *Create Plan* buttons to start the migration wizard.
 +
-image::2026_spring/module-02-mtv/07_Create_VMWARE_Plan.png[link=self, window=blank, width=100%]
+image::ocp5/module-06-mtv/02_Create_VMWARE_Plan.png[link=self, window=blank, width=100%]
 
-. First you will be asked to create a *Plan name*, fill in the field with the value: *move-webapp-vmware*. Ensure that the Project selected for the migration is *mtv-{user}*, select *vmware* from from the Source provider dropdown, and select *host* from the Target provider dropdown. Finally select *vmexamples-{user}* as the project from the Target project dropdown, and when you are ready, click the *Next* button.
+. The first page you will encounter is the *General* screen where you will be asked to create a *Plan name*, fill in the field with the value: *move-webapp-vmware*. Ensure that the Project selected for the migration is *mtv-{user}*, select *vmware* from from the Source provider dropdown, and select *host* from the Target provider dropdown. Finally select *vmexamples-{user}* as the project from the Target project dropdown, and when you are ready, click the *Next* button.
 +
-image::2026_spring/module-02-mtv/08_VMware_Source_Provider.png[link=self, window=blank, width=100%]
+image::ocp5/module-06-mtv/03_VMware_Source_Provider.png[link=self, window=blank, width=100%]
 
-. The page will update and you will see a list of folders that contain VMs in the VMware vSphere environment. Click the drop down arrow next to the *Roadshow* folder and you will see the a list of the virtual machines in the environment that your user account *{user}* has access to.
+. The page will update to the *Virtual machines* page and you will see a folder named *Roadshow*. If you click the expanding arrow next to the folder, you will see the a list of the virtual machines in the environment that your user account *{user}* has access to.
 
 . Click the boxes to select the three VMs you would like to move, and click the *Next* button.
 
@@ -135,48 +106,51 @@ image::2026_spring/module-02-mtv/08_VMware_Source_Provider.png[link=self, window
 * winweb01-{user}
 * winweb02-{user}
 +
-image::2026_summer/module-02-mtv/09_VM_List.png[link=self, window=blank, width=100%]
-
-. On the next screen you will be tasked with providing networking details for your migration plan. Select the radio button to *Use new network map*, then from the Source network dropdown select *segment-migrating-to-ocpvirt* and for the Target network dropdown select the *Default network*. Finally, fill in the Network map name with *default-network-map* and click the *Next* button.
+image::ocp5/module-06-mtv/04_VM_List.png[link=self, window=blank, width=100%]
 +
-image::2026_spring/module-02-mtv/10a_Mig_Plan_Net.png[link=self, window=blank, width=100%]
-
-. On the next screen you will be tasked with providing storage details for your migration plan. Select the radio button to *Use new storage map*, then from the Source storage dropdowns make sure that the workload share from the VMware vSphere environment is listed, and from the Target storage dropdowns the default storage class *ocs-external-storagecluster-ceph-rbd* are selected for both. Finally, fill in the Storage map name with *default-storage-map* and click the *Next* button.
+NOTE: You will see a column called *Concerns* on this page, you can over over the warnings and see what each one is. Most of these warnings are because the source VM is not currently powered on, and it could not be inspected. In a real world migration scenario, having the Migration Toolkit advise you of issues with virtual machines before you migrate is an extremely valuable tool.
 +
-image::2026_summer/module-02-mtv/10b_Mig_Plan_Stor.png[link=self, window=blank, width=100%]
+image::ocp5/module-06-mtv/05_VM_Warnings.png[link=self, window=blank, width=100%]
 
-. The next screen will give you the option of creating a Cold or Warm migration. As the source virtual machines are powered off we will choose Cold Migration and click the *Next* button.
+. The next screen is the *Network map* screen where you will be tasked with providing networking details for your migration plan. Select the radio button to *Use new network map*, then from the Source network dropdown select *segment-migrating-to-ocpvirt* and for the Target network dropdown select the *Default network*. Finally, fill in the Network map name with *default-network-map* and click the *Next* button.
 +
-image::2026_spring/module-02-mtv/10c_Mig_Plan_Cold.png[link=self, window=blank, width=100%]
+image::ocp5/module-06-mtv/06_Mig_Plan_Net.png[link=self, window=blank, width=100%]
+
+. This is followed by the *Storage map* screen where you will be tasked with providing storage details for your migration plan. Select the radio button to *Use new storage map*, then from the Source storage dropdowns make sure that the workload share from the VMware vSphere environment is listed, and from the Target storage dropdowns the default storage class *ocs-external-storagecluster-ceph-rbd* are selected for both. Finally, fill in the Storage map name with *default-storage-map* and click the *Next* button.
++
+image::ocp5/module-06-mtv/07_Mig_Plan_Stor.png[link=self, window=blank, width=100%]
+
+. The next screen *Migration type* will give you the option of creating a Cold or Warm migration. As the source virtual machines are powered off we will choose Cold Migration and click the *Next* button.
++
+image::ocp5/module-06-mtv/08_Mig_Plan_Cold.png[link=self, window=blank, width=100%]
 
 . The next few screens will take you through a few advanced options such as: disk encryption, dedicated migration networks, and modifying the VM power states, as well as enabling Ansible hooks for pre- and post-configuration scripts. You can explore these options at your leisure by continuing to click the *Next* button, or you can click the *Skip to review* button to proceed to the next step. 
 
 . You will now be on the *Review and create* page, where you can see all of the options we just selected during the migration wizard. Review that everything looks correct, and when you are ready click the *Create plan* button at the bottom.
 +
-image::2026_spring/module-02-mtv/11a_Create_Migration_Plan_Top.png[link=self, window=blank, width=100%]
-image::2026_summer/module-02-mtv/11b_Create_Migration_Plan_Bottom.png[link=self, window=blank, width=100%]
+image::ocp5/module-06-mtv/09_Create_Migration_Plan.png[link=self, window=blank, width=100%]
 
 . After a few moments the plan will become *Ready for Migration*, click on the blue *Start* button to begin the migration process.
 +
-image::2026_spring/module-02-mtv/13_Migration_Plan_Ready.png[link=self, window=blank, width=100%]
+image::ocp5/module-06-mtv/10_Migration_Plan_Ready.png[link=self, window=blank, width=100%]
 
 . You will be presented with a confirmation box to begin the migration, click on the *Start* button.
 +
-image::2026_spring/module-02-mtv/14_Confirm_Migrate_Start.png[link=self, window=blank, width=100%]
+image::ocp5/module-06-mtv/11_Confirm_Migrate_Start.png[link=self, window=blank, width=100%]
 
 . The plan will switch to *Migration Running* and a spinning wheel will appear under the *Status* field and update the progress of the migration with a percentage value.
 +
-image::2026_spring/module-02-mtv/15_VMs_Migrating.png[link=self, window=blank, width=100%]
+image::ocp5/module-06-mtv/12_VMs_Migrating.png[link=self, window=blank, width=100%]
 
 . Click on the *Virtual Machines* tab and you will be presented with a page with more details about the migration plan progress.
 +
-image::2026_spring/module-02-mtv/16_VMs_Migrating_Details.png[link=self, window=blank, width=100%]
+image::ocp5/module-06-mtv/13_VMs_Migrating_Details.png[link=self, window=blank, width=100%]
 
 . You can click the drop-down arrow next to the name of each VM being migrated to get additional details about the stages of the migration process. Click on the arrow next to *database-{user}* to expand it's details. 
 +
-image::2026_spring/module-02-mtv/17_VM_Migration_Stages.png[link=self, window=blank, width=100%]
+image::ocp5/module-06-mtv/14_VM_Migration_Stages.png[link=self, window=blank, width=100%]
 
-IMPORTANT: The migration of these machines can take a a little bit of time depending on the number of users currently participating in the lab. In a production environment it's recommended to have a dedicated 10gbps network for virtual machine migrations, which we do not have in our simulated lab environment. Please be patient as these machines migrate, and feel free to move along to the next section of interactive videos, or to the next module while awaiting the completion of the migration plan. We will work with these migrated VMs in a later module.
+IMPORTANT: The migration of these machines can take a a little bit of time, 5-10 minutes in most cases, but that can vary depending on the number of users currently participating in the lab. In a production environment it's recommended to have a dedicated 10gbps network for virtual machine migrations, which we do not have in our simulated lab environment. Please be patient as these machines migrate, and feel free to proceed to the next section of interactive videos where we demonstrate some advanced features of the Migration Toolkit for Virtualization while awaiting the completion of the migration plan. We will work with these migrated VMs in the next module.
 
 
 [[interactive_demos]]
@@ -190,7 +164,7 @@ Please take this time to review the following sections and enjoy the interactive
 
 Automated configuration hooks are a really awesome and powerful feature built into the Migration Toolkit for Virtualization.
 
-Configuration hooks are included as a feature in the Migration Toolkit for Virtualization. They can be set up as either a pre- or post-configuration hook to modify the properties of a virtual machine either before or after the migration process completed. They leverage the power of Ansible automation to perform their desired actions through YAML formatted playbooks, but they do not require a separate subscription for https://www.redhat.com/en/hybrid-cloud-solutions/automation?sc_cid=RHCTN0250000435827&gad_source=1&gad_campaignid=20322566154&gbraid=0AAAAADsbVMRTUlnZMtmJPEadK_tiBW92m&gclid=EAIaIQobChMIqt2m1oHxjAMVjnFHAR1rXhMLEAAYASAAEgIdAfD_BwE&gclsrc=aw.ds[Ansible Automation Platform^]. Instead, they run by executing inside of a separate *ansible-runner* pod with runs the playbook provided against the target virtual machines during the migration process.
+Configuration hooks are included as a feature in the Migration Toolkit for Virtualization. They can be set up as either a pre- or post-configuration hook to modify the properties of a virtual machine either before or after the migration process completed. They leverage the power of Ansible automation to perform their desired actions through YAML formatted playbooks, but they do not require a separate subscription for https://www.redhat.com/en/technologies/management/ansible[Ansible Automation Platform^]. Instead, they run by executing inside of a separate *ansible-runner* pod with runs the playbook provided against the target virtual machines during the migration process.
 
 These automated tasks can be invaluable to ensuring that virtual machines that worked on a source hypervisor, work as expected on OpenShift Virtualization.
 
@@ -248,13 +222,13 @@ The warm migration process is achieved by taking advantage of Changed Block Trac
 
 . After some time we will see that the migration has completed successfully.
 +
-image::2026_spring/module-02-mtv/18_Completed_VMWARE_Plan.png[link=self, window=blank, width=100%]
+image::ocp5/module-06-mtv/15_Completed_VMWARE_Plan.png[link=self, window=blank, width=100%]
 
 . The selected virtual machines have now been successfully migrated to OpenShift Virtualization and can be worked with as you would any other virtual machine.
 
 . Click on *Virtualization -> VirtualMachines* in the left side navigation menu, and you should see them listed in your *vmexamples-{user}* project alongside any other created VMs like *fedora01*.
 +
-image::2026_spring/module-02-mtv/19_VMs_In_Openshift.png[link=self, window=blank, width=100%] 
+image::ocp5/module-06-mtv/16_VMs_In_Openshift.png[link=self, window=blank, width=100%] 
 
 == Summary
 
@@ -262,7 +236,7 @@ In this section we explored the Migration Toolkit for Virtualization, and used i
 
 In addition to the Migration Toolkit for Virtualization, there are two other migration toolkits currently available. The combination of these can be used to move many types of workloads into and within OpenShift clusters depending on your organization's needs.
 
-* https://docs.redhat.com/en/documentation/migration_toolkit_for_applications/8.0/html/installing_the_migration_toolkit_for_applications/intro-to-mta_installing-mta-title[Migration Toolkit for Applications^] - Accelerate large-scale application modernization efforts to containers and Kubernetes.
-* https://docs.redhat.com/en/documentation/openshift_container_platform/4.21/html/migration_toolkit_for_containers/about-mtc[Migration Toolkit for Containers^] - Migrate stateful application workloads between OpenShift clusters.
+* https://catalog.redhat.com/en/software/container-stacks/detail/646f54520baa93af1e728994[Migration Toolkit for Applications^] - Accelerate large-scale application modernization efforts to containers and Kubernetes.
+* https://catalog.redhat.com/en/software/container-stacks/detail/5ec53fffef29fd35586d9a5a[Migration Toolkit for Containers^] - Migrate stateful application workloads between OpenShift clusters.
 
 For more information about these other migration toolkits, please reach out to your Red Hat account team.
