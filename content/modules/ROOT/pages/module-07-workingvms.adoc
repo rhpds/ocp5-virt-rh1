@@ -174,7 +174,7 @@ To begin, we'll add labels to the virtual machines by modifying their definition
 
 . Click on *VirtualMachines* in the left-side menu, click on the *vmimported-{user}* project and *Start* your three imported virtual machines: *database, winweb01, and winweb02*. You can verify this easily by sorting by the *Status* column in the right-side tree view.
 +
-image::2026_spring/module-07-workingvms/15_Staged_VMs_List.png[link=self, window=blank, width=100%]
+image::ocp5/module-07-workingvms/15_Staged_VMs_List.png[link=self, window=blank, width=100%]
 
 . Select to the *winweb01* VM and navigate to the *YAML* tab.
 . Find the *spec:* section and under the *template.metadata* section, and use the following syntax to add labels to the VM:
@@ -188,7 +188,7 @@ labels:
 +
 IMPORTANT: Make sure to get the indentation exactly right - just like in the screenshot below.
 +
-image::2026_spring/module-07-workingvms/16_Staged_VMs_YAML.png[link=self, window=blank, width=100%]
+image::ocp5/module-07-workingvms/16_Staged_VMs_YAML.png[link=self, window=blank, width=100%]
 
 . Click the *Save* button, and you will be prompted that the VM has been updated to a new version number.
 . *Repeat* the process for the VM *winweb02* using the following syntax:
@@ -208,7 +208,7 @@ NOTE: Ensure the VMs are properly working by accessing to the console tab of eac
 
 . In the left-side menu expand *Networking* and click on *Services*. On the screen that loads, click the *Create Service* button in the center of the page.
 +
-image::2026_spring/module-07-workingvms/17_Navigate_Service.png[link=self, window=blank, width=100%]
+image::ocp5/module-07-workingvms/17_Navigate_Service.png[link=self, window=blank, width=100%]
 
 . Replace the YAML with the following definition
 +
@@ -228,16 +228,16 @@ spec:
     targetPort: 80
 ----
 +
-image::2026_spring/module-07-workingvms/18_Service_YAML.png[link=self, window=blank, width=100%]
+image::ocp5/module-07-workingvms/18_Service_YAML.png[link=self, window=blank, width=100%]
 
 . Click the *Create* button at the bottom. You will get a notification that the YAML has been saved.
 . From the details page for the newly created *webapp* Service, locate *Pod selector* link and click it.
 +
-image::2026_spring/module-07-workingvms/19_Imported_VMs_PodSelector.png[link=self, window=blank, width=100%]
+image::ocp5/module-07-workingvms/19_Imported_VMs_PodSelector.png[link=self, window=blank, width=100%]
 
 . Verify the two Windows VMs are properly identified and targeted by the Service.
 +
-image::2026_spring/module-07-workingvms/20_Imported_VMs_Pods.png[link=self, window=blank, width=100%]
+image::ocp5/module-07-workingvms/20_Imported_VMs_Pods.png[link=self, window=blank, width=100%]
 
 === Create the Route
 
@@ -245,7 +245,7 @@ With the service created, the Windows IIS servers are accessible from within the
 
 . Under *Networking* now click on the *Routes* option in the left navigation menu.  Click the *Create Route* button in the center of the screen.
 +
-image::2026_spring/module-07-workingvms/21_Route_Navigation.png[link=self, window=blank, width=100%]
+image::ocp5/module-07-workingvms/21_Route_Navigation.png[link=self, window=blank, width=100%]
 
 . Fill the form using the information below, scroll to the bottom and click the *Create* button when done.
 +
@@ -256,15 +256,15 @@ image::2026_spring/module-07-workingvms/21_Route_Navigation.png[link=self, windo
 .. *TLS termination*: *Edge*
 .. *Insecure traffic*: *Redirect*
 +
-image::2026_spring/module-07-workingvms/22_Create_Route.png[link=self, window=blank, width=100%]
+image::ocp5/module-07-workingvms/22_Create_Route.png[link=self, window=blank, width=100%]
 
 . Navigate to the address shown in *Location* field
 +
-image::2026_spring/module-07-workingvms/23_Route_Access.png[link=self, window=blank, width=100%]
+image::ocp5/module-07-workingvms/23_Route_Access.png[link=self, window=blank, width=100%]
 
 . When the page loads, you will see an error, it's not working as expected so something must be wrong.
 +
-image::2026_spring/module-07-workingvms/24_WebApp_Error.png[link=self, window=blank, width=100%]
+image::ocp5/module-07-workingvms/24_WebApp_Error.png[link=self, window=blank, width=100%]
 
 . To address our connectivity issue, we will need to create a service for the *database* VM as well so that it can be accessed by the web servers.
 
@@ -286,22 +286,22 @@ spec:
     targetPort: 3306
 ----
 +
-image::2026_spring/module-07-workingvms/25_Database_YAML.png[link=self, window=blank, width=100%]
+image::ocp5/module-07-workingvms/25_Database_YAML.png[link=self, window=blank, width=100%]
 
 
 . When the YAML is pasted, click the *Create* button.
 . Reload the WebApp URL in your browser and expect to get the proper result of a working migrated web application.
 +
-image::2026_spring/module-07-workingvms/26_WebApp_Success.png[link=self, window=blank, width=100%]
+image::ocp5/module-07-workingvms/26_WebApp_Success.png[link=self, window=blank, width=100%]
 
 . Refresh the screen a couple of times, you should see which webserver is responding, and that the count of user accesses rises with each refresh.
 . Return to your OpenShift console, and click on *VirtualMachines* and shut down the web server that is currently handling your requests.
 +
-image::2026_spring/module-07-workingvms/27_WinWeb02_Shutdown.png[link=self, window=blank, width=100%]
+image::ocp5/module-07-workingvms/27_WinWeb02_Shutdown.png[link=self, window=blank, width=100%]
 
 . Return to your tab with the open WebApp URL and refresh the screen. You should see the remaining web server start returning requests, and the count continue to rise with each refresh. Configuring the service to load balance between two virtual web servers is shown to be successful.
 +
-image::2026_spring/module-07-workingvms/28_WinWeb01_Online.png[link=self, window=blank, width=100%]
+image::ocp5/module-07-workingvms/28_WinWeb01_Online.png[link=self, window=blank, width=100%]
 +
 NOTE: While this is a simple example, keep in mind that there are a number of ways to configure load balancing services between virtual machines in OpenShift to meet the needs of your application. 
 
