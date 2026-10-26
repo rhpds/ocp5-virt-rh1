@@ -172,7 +172,7 @@ To begin, we'll add labels to the virtual machines by modifying their definition
 
 === Label the Virtual Machines
 
-. Click on *Virtualization -> VirtualMachines* in the left-side menu, click on the *vmimported-{user}* project and *Start* your three imported virtual machines: *database, winweb01, and winweb02*. You can verify this easily by sorting by the *Status* column in the right-side tree view.
+. Click on *VirtualMachines* in the left-side menu, click on the *vmimported-{user}* project and *Start* your three imported virtual machines: *database, winweb01, and winweb02*. You can verify this easily by sorting by the *Status* column in the right-side tree view.
 +
 image::2026_spring/module-07-workingvms/15_Staged_VMs_List.png[link=self, window=blank, width=100%]
 
@@ -241,7 +241,7 @@ image::2026_spring/module-07-workingvms/20_Imported_VMs_Pods.png[link=self, wind
 
 === Create the Route
 
-Now the Windows IIS servers are accessible from within the OpenShift cluster. Other virtual machines are able to access them using the DNS name **webapp.vmimported-{user}**, which is determined by the name of the service + the namespace. However, since these web servers are the front end to an application, we want it to be externally accessible. This will be done by exposing it publicly using a *Route*.
+With the service created, the Windows IIS servers are accessible from within the OpenShift cluster. Other virtual machines are able to access them using the DNS name **webapp.vmimported-{user}**, which is determined by the name of the service + the namespace. However, since these web servers are the front end to an application, we want it to be externally accessible. This will be done by exposing it publicly using a *Route*.
 
 . Under *Networking* now click on the *Routes* option in the left navigation menu.  Click the *Create Route* button in the center of the screen.
 +
@@ -295,7 +295,7 @@ image::2026_spring/module-07-workingvms/25_Database_YAML.png[link=self, window=b
 image::2026_spring/module-07-workingvms/26_WebApp_Success.png[link=self, window=blank, width=100%]
 
 . Refresh the screen a couple of times, you should see which webserver is responding, and that the count of user accesses rises with each refresh.
-. Return to your OpenShift console, and click on *Virtualization -> VirtualMachines* and shut down the web server that is handling your requests.
+. Return to your OpenShift console, and click on *VirtualMachines* and shut down the web server that is currently handling your requests.
 +
 image::2026_spring/module-07-workingvms/27_WinWeb02_Shutdown.png[link=self, window=blank, width=100%]
 
@@ -308,4 +308,4 @@ NOTE: While this is a simple example, keep in mind that there are a number of wa
 
 == Summary
 
-In this module you were able to experience working with virtual machines that are running in OpenShift Virtualization -- either those that you migrated into the OpenShift Virtualization environment from VMware vSphere, or those that already existed in your cluster -- by making them accessible outside of the cluster in a more modernized approach using the native services and routes features in Red Hat OpenShift. This essentially allows you to treat your imported virtual machines and the applications they host like containerized applications, the first step of your modernization journey converting your legacy virtual machine hosted applications to containerized applications.
+In this module we were able to experience working with virtual machines that are running in OpenShift Virtualization -- either those that you migrated into the OpenShift Virtualization environment from VMware vSphere, or those that already existed in your cluster -- by making them accessible outside of the cluster in a more modernized approach using the native services and routes features in Red Hat OpenShift. This essentially allows you to treat your imported virtual machines and the applications they host like containerized applications, the first step of your modernization journey converting your legacy virtual machine hosted applications to containerized applications.
