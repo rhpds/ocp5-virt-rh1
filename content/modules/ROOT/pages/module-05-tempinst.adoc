@@ -72,7 +72,7 @@ image::ocp5/module-05-tempinst/06_VM_Customize.png[link=self, window=blank, widt
 +
 image::ocp5/module-05-tempinst/07_Scripts_CloudInit.png[link=self, window=blank, width=100%]
 
-. When the *Cloud-init* dialog opens, click the radio button to *Configure via: Script* then *copy and paste* the following YAML snippet to the bottom of the existing YAML so that it will automatically install and configure MySQL to run on start.
+. When the *Cloud-init* dialog opens, click the radio button to *Configure via: Script* then *copy and paste* the following YAML snippet to the bottom of the existing YAML so that it will automatically install and configure MariaDB to run on start.
 +
 [source,yaml,role=execute]
 ----
@@ -128,10 +128,7 @@ image::ocp5/module-05-tempinst/14_Save_Template_Dialog.png[link=self, window=bla
 +
 image::ocp5/module-05-tempinst/15_Template_Ready.png[link=self, window=blank, width=100%]
 
-You now have a template that you can use to quickly and easily deploy Database servers in the future.
-
-////
-. Now lets test our template by deploying it, and confirming that it works as expected.
+. Now lets test our template by deploying it, and confirming that it works as expected, with our expected resources, and our database installed.
 
 . Return to the *VirtualMachines* menu, highlight your *vmexamples-{user}* project, and use the *Create* button in the corner.
 +
@@ -144,17 +141,40 @@ image::ocp5/module-05-tempinst/17_Template_DB_Server.png[link=self, window=blank
 . On the next screen select your *vmexamples-{user}* project from the dropdown list, and select the Category *Databases* and you will see your saved template appear. Select your template, and click the *Next* button to continue.
 +
 image::ocp5/module-05-tempinst/18_DB_Template_Tile.png[link=self, window=blank, width=100%]
-////
 
+. The next screen is the *Customization* screen. Just click the *Next* button to continue.
++
+image::ocp5/module-05-tempinst/19_DB_Template_Custom.png[link=self, window=blank, width=100%]
+
+. The final screen before we deploy our template is the *Review and create* screen, click the button for *Create VirtualMachine* to get our VM running.
++
+image::ocp5/module-05-tempinst/20_DB_Template_CreateVM.png[link=self, window=blank, width=100%]
+
+. Our new *database-server* VM is now running, and it has the same defined OS, Resources, InstanceType, and Preference as the machine we created the template from.
++
+image::ocp5/module-05-tempinst/21_DB_Template_VMRunning.png[link=self, window=blank, width=100%]
+
+. Lets log in and confirm that MariaDB is running automatically as we designed. Click on the *Console* tab, and login to the VM with the provided credentials.
++
+image::ocp5/module-05-tempinst/22_DB_Template_Console.png[link=self, window=blank, width=100%]
+
+. Run the same command as before to log into the database instance and verify that it is running.
++
+[source,sh,role=execute]
+----
+sudo mysql -u root
+----
++
+image::ocp5/module-05-tempinst/23_DB_Template_DBRunning.png[link=self, window=blank, width=100%]
+
+The database software is automatically running on our deployed template, just like we expected.
 
 
 ////
 [[create_win]]
 == Create a Windows VM Template
 
-In this segment of our lab, we will install Microsoft Windows Server 2022 using an ISO hosted on a web server. This represents one way to install an operating system to a virtual machine that takes advantage of the ability to source disks from many locations, including a web server, object storage, or other persistent volumes in the cluster.
-
-This process can be streamlined after the initial operating system installation by creating a cloned root disk from a sysprepped virtual machine to use with other templates. 
+In this segment of our lab, we will install Microsoft Windows Server 2022 using an ISO hosted on a web server. This represents one way to install an operating system to a virtual machine that takes advantage of the ability to source disks from many locations, including a web server, object storage, or other persistent volumes in the cluster. This process can be streamlined after the initial operating system installation by creating a cloned root disk from a sysprepped virtual machine to use with other templates. 
 
 NOTE: The specific process for preparing the guest operating system to be used as a template will vary, be sure to follow your organization's guidelines and requirements when preparing a template OS.
 
