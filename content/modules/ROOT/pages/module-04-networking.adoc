@@ -235,7 +235,6 @@ image::ocp5/module-04-networking/22_UDN_Network_Tile.png[link=self, window=blank
 +
 image::ocp5/module-04-networking/23_UDN_Network_Config.png[link=self, window=blank, width=100%]
 
-////
 . Switch to the Console tab and login to the VM using the provided guest credentials.
 
 . Use the *ping* command to test connectivity to a public website like *www.google.com* to demonstrate that we have network communication on our Primary UDN.
@@ -245,11 +244,9 @@ image::ocp5/module-04-networking/24_UDN_RHEL_Console.png[link=self, window=blank
 * The VM has assigned a IP from the subnet defined
 * The VM automatically gets the gateway configuration from the DHCP server.
 * The VM has access to internet using the User Defined Network.
-////
 
 == Summary
 
 In this module, you explored working with physical networks and connecting Virtual Machines (VMs) directly to an existing network. By attaching VMs directly to a physical network administrators can directly access the VMs while also enabling the VMs to connect to specialized networks, such as storage or administration networks.
 
 We also introduced User-defined networks, which provide cluster administrators and end users with highly customizable network configuration options and a much more flexible experience for managing both primary and secondary network types.
-
