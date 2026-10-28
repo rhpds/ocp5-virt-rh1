@@ -106,12 +106,10 @@ Read everything needed to build the full scaffold plan before showing anything t
   genuinely-missing files filled in, and the migration-specific `qa-automation/` is overlaid on
   top. Requires A.1b to have already run so the existing content is aligned to the right names
   first.
-- `project.automation_type` from `publishing-house/spec.yaml`. This is the only chance to scaffold
-  automation directories automatically — `scaffold.py` deletes `.scaffolds/` (including
-  `.scaffolds/automation/`) once it completes, so automation scaffolding must happen in this same
-  invocation, not as a later separate step. See the Automation Scaffolding reference (below) for what
-  each value creates. If `automation_type` is empty, unset, or unrecognised, omit `--automation`
-  entirely.
+- Always scaffold both `automation/ansible/` and `automation/gitops/` directories. The `scaffold.py`
+  script deletes `.scaffolds/` (including `.scaffolds/automation/`) once it completes, so automation
+  scaffolding must happen in this same invocation, not as a later separate step. See the Automation
+  Scaffolding reference (below) for details.
 - `spec.environment.topology` — if it already happens to be `shared-cluster` at this point, also pass
   `--topology shared-cluster` (usually it won't be known yet — topology is normally decided later
   during intake).
@@ -121,17 +119,16 @@ whether they'd rather scaffold it themselves; that's what this step exists to do
 
 > Based on your spec, I'll scaffold this project as:
 > - **Pattern:** `showroom_type: <value>` → **<pattern description>** (`<pattern-name>`)
-> - **Automation:** <"none" | "`<automation_type>` → `automation/<...>/`" (+ `bootstrap-tenant/` if topology is `shared-cluster`)>
+> - **Automation:** Both Ansible and GitOps → `automation/ansible/` and `automation/gitops/bootstrap-infra/` (+ `bootstrap-tenant/` if topology is `shared-cluster`)
 > [If migration:] - **Migration:** existing `runtime-automation/`, `setup-automation/`, and `config/` are preserved as-is, untouched — `ui-config.yml` and other pattern files only have genuinely missing files filled in, and `qa-automation/` is replaced with the migration-aware version
 >
 > Proceed?
 
 Then run:
 ```bash
-python scaffold.py --pattern <pattern-name> --automation <automation_type> --force
+python scaffold.py --pattern <pattern-name> --automation both --force
 ```
-(Omit `--automation` if `automation_type` was empty/unset. Add `--topology shared-cluster` if
-applicable. Add `--migration` if `project.intake_type` is `migration`.)
+(Add `--topology shared-cluster` if applicable. Add `--migration` if `project.intake_type` is `migration`.)
 
 **A.3 — Configure tabs from spec:**
 
@@ -139,7 +136,7 @@ After scaffolding, the `ui-config.yml` has placeholder tabs. Follow the Tab Advi
 
 **A.4 — Automation directories already scaffolded:**
 
-`scaffold.py` (step A.2) already created `automation/` if `--automation` was passed. See the
+`scaffold.py` (step A.2) already created both `automation/ansible/` and `automation/gitops/`. See the
 Automation Scaffolding reference (below) for a summary of what was created, and for how to add
 `automation/gitops/bootstrap-tenant/` manually later if topology turns out to be `shared-cluster`
 after `.scaffolds/` is already gone.
@@ -415,19 +412,17 @@ this is handled by the script itself (Route A, step A.2), not by manually copyin
 source templates live in `.scaffolds/automation/`, which only exists before the project's first
 scaffolding run.
 
-### What each automation_type creates
+### What automation scaffolding creates
 
-Reading `project.automation_type` from `publishing-house/spec.yaml`:
+Always run with `--automation both`, which creates:
 
-| `automation_type` | Flag | Creates |
-|---|---|---|
-| `ansible` | `--automation ansible` | `automation/ansible/` |
-| `gitops` | `--automation gitops` | `automation/gitops/bootstrap-infra/` (+ `automation/gitops/bootstrap-tenant/` if `--topology shared-cluster` was also passed) |
-| `both` | `--automation both` | all of the above |
+| Directory | Contents |
+|---|---|
+| `automation/ansible/` | Starter Ansible collection with galaxy.yml, example role, and READMEs |
+| `automation/gitops/bootstrap-infra/` | Minimal Helm chart with a test namespace |
+| `automation/gitops/bootstrap-tenant/` | Only created if `--topology shared-cluster` — per-user tenant chart |
 
-If `automation_type` is empty, unset, or unrecognised → omit `--automation` and skip silently.
-
-If the target directory already exists for a given type (`automation/gitops/` or `automation/ansible/`),
+If the target directory already exists (`automation/gitops/` or `automation/ansible/`),
 `scaffold.py` clears and recreates it (with `--force`) or prompts before overwriting — see its
 `--help` for the exact behavior.
 

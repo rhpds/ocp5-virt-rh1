@@ -170,6 +170,5 @@ Additionally, if `~/.config/publishing-house/preintake-data.json` exists (from S
 - `spec.modules[]` — Content Outline
 - `spec.learning_objectives[]` — Learning Objectives
 - `project.content_type` — Lab or Demo
-- `project.automation_type` — Automation Type
 
 **Skip asking about any field that already has a value.**

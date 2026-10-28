@@ -81,7 +81,8 @@ Loop:
 
 - Never tell the author to run any script except opening the portal URL during first-time key setup
 - ALWAYS show the portal URL in the conversation — never rely solely on `open` working (DevSpaces has no browser)
-- **`project_id`** comes from `spec.yaml` `project.slug`
+- **`project_id` (slug)** comes from `spec.yaml` `project.slug` — used for intake/development submission
+- **`workflow_id`** comes from `spec.yaml` `project.workflow_id` — used for workflow data queries (automatically populated during repo creation)
 - **`central_url`** comes from the **Central** link in `catalog-info.yaml` (cached in `~/.config/publishing-house/auth.json`)
 - Stage is always read from the Central API via `ph-workflow-data.py` and `ph-workflow-state.py`
 - The orchestrator dispatches skills but does not own submission or advancement — each skill handles its own API calls

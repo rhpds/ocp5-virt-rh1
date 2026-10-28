@@ -150,19 +150,16 @@ After the procedure completes and the user declines to add/import more roles, as
 > 2. Back to dashboard (I'll finish later)
 
 - **1** →
-  1. Set `development.automation.ansible.status: complete` in `publishing-house/spec.yaml`
+  1. Set `development.automation.status: complete` in `publishing-house/spec.yaml`
   2. Commit and push:
      ```bash
      git add publishing-house/spec.yaml
-     git commit -m "feat: mark ansible automation complete"
+     git commit -m "feat: mark automation complete"
      git push
      ```
-  3. Check if **all** applicable automation children are now `complete` (read `project.automation_type`
-     from spec.yaml — if `both`, check that the other child is also complete). If all complete, close the
-     Jira ticket:
+  3. Close the Jira ticket:
      ```bash
      python publishing-house/tools/ph-task-complete.py write-automation
      ```
-     If other children are still incomplete, do not close the ticket.
-  4. Confirm: "Ansible automation marked complete. Returning to development dashboard."
-- **2** → Confirm: "Returning to development dashboard. You can come back to Ansible automation anytime."
+  4. Confirm: "Automation marked complete. Returning to development dashboard."
+- **2** → Confirm: "Returning to development dashboard. You can come back to automation anytime."

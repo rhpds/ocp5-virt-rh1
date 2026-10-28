@@ -25,9 +25,29 @@ A complete spec MUST have all of these (11 sections + a descriptive H1 title):
 
 Capture what you know now — guesstimates are fine during intake. Spec refinement fills gaps.
 
+### Epic Description → spec.yaml Field Mapping
+
+The following fields from the Jira epic "Environment Configuration" section are pre-populated from the onboarding form and map directly to spec.yaml:
+
+| Epic Field | spec.yaml Field | Notes |
+|------------|----------------|-------|
+| Platform | `spec.environment.platform` | `ocp` or `rhel-vms` |
+| Cloud Provider | `spec.environment.cloud_provider` | `cnv`, `aws`, `rosa`, `aro`, etc. |
+| Cluster Type | `spec.environment.cluster_type` | `sno` or `multinode` (only when platform=ocp) |
+| OCP Version | `spec.environment.ocp_version` | e.g. `4.20`, `4.21`, `4.22` (only when platform=ocp) |
+| RHEL Version | Use for `vms_per_student[].version` | e.g. `8`, `9`, `10` — applies to all RHEL VMs in the list (only when platform=rhel-vms) |
+
+### Intake-Captured Fields
+
+The following fields are NOT in the epic description — they are captured during the intake conversation (Phase 5):
+
+| Field Captured | spec.yaml Field | Values |
+|----------------|----------------|--------|
+| Automation approach | `project.automation_type` | `ansible`, `gitops`, or `both` |
+
 ### Base Infrastructure
 - Which base CI type: `ocp4-cluster`, `ocp-workloads`, `cloud-vms-base`, or existing CI name
-- `cloud_provider`: `cnv` (default), `aws`, `azure`, `aro`, `rosa`, `gcp`, or `google`. CNV unless exception granted. **Automatically set to `aws` when `ai_requirement: gpu` (overwrites existing value).** Azure/ARO/ROSA for cloud-specific deployments. GCP/Google for Google Cloud. Stored in `spec.environment.cloud_provider`.
+- `cloud_provider`: Pre-populated from epic, but can be adjusted. CNV unless exception granted. **Automatically set to `aws` when `ai_requirement: gpu` (overwrites existing value).** Azure/ARO/ROSA for cloud-specific deployments. GCP/Google for Google Cloud. Stored in `spec.environment.cloud_provider`.
 - Automation approach: Ansible, GitOps (Helm + ArgoCD), or combo
 
 ### Cluster Sizing
@@ -42,10 +62,11 @@ Capture what you know now — guesstimates are fine during intake. Spec refineme
 ### AI / MaaS
 - `ai_requirement`: maas | gpu | none
 - `ai_model_tier`: open-source (default, no justification required) | frontier (requires justification)
-- `ai_model_name`: specific model if known
-- `ai_justification`: required if frontier or gpu — explain why open-source is insufficient
+- `ai_model_name`: specific model if known (populated from workflow `maasModels` field)
+- `ai_justification`: required if frontier or gpu — explain why open-source is insufficient (populated from workflow `gpuJustification` field)
 - **AI keyword triggers (Phase 5):** AI, RHOAI, OpenShift AI, MaaS, Granite, InstructLab, Ollama, LLM, inference, model serving
 - **Default path:** MaaS + open-source → no justification required. Frontier or GPU → justification required for infra review.
+- **Pre-intake mapping:** `canUseMaas: false` means `ai_requirement: gpu` (inverse boolean). See Phase 5 procedure for full mapping.
 
 ### External Services
 - List ALL named external services the lab needs to reach — both during provisioning/deployment and during the student session

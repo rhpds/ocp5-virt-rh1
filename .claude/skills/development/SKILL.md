@@ -111,25 +111,19 @@ Before showing the dashboard, check for any `in_progress` work and ask the autho
 
 Ask about all `in_progress` modules sequentially before proceeding.
 
-**2b. Automation** — Read `project.automation_type` from `spec.yaml`. For each applicable child
-(`gitops` if type is `gitops` or `both`; `ansible` if type is `ansible` or `both`), check
-`development.automation.<child>.status`.
+**2b. Automation** — Check `development.automation.status` in `spec.yaml`.
 
-If a child's status is `in_progress`, ask:
+If status is `in_progress`, ask:
 
-> "[Child] automation is in progress. Are you done with it?"
+> "Automation is in progress. Are you done with it?"
 > 1. Yes, mark it complete
 > 2. No, still working on it
 
 - **1** →
-  1. Set `development.automation.<child>.status: complete` in spec.yaml
+  1. Set `development.automation.status: complete` in spec.yaml
   2. Commit and push
-  3. Check if **all** applicable automation children are now `complete`. If yes, close the Jira ticket:
-     `python publishing-house/tools/ph-task-complete.py write-automation`
-     If other children are still incomplete, do not close the ticket.
+  3. Close the Jira ticket: `python publishing-house/tools/ph-task-complete.py write-automation`
 - **2** → leave as `in_progress`, move on.
-
-Ask about each applicable child sequentially before proceeding.
 
 **2c. E2E Tests** — If `development.e2e.status` is `in_progress`, ask:
 
@@ -166,9 +160,7 @@ Only show **incomplete** workstreams (not_started or in_progress). Completed wor
 
 Read from `spec.yaml`:
 - Module statuses from `spec.modules[*].status`
-- `project.automation_type` — determines which automation children exist
-- `development.automation.gitops.status` (if `automation_type` is `gitops` or `both`)
-- `development.automation.ansible.status` (if `automation_type` is `ansible` or `both`)
+- `development.automation.status`
 - `development.e2e.status`
 - `development.healthCheck.status`
 
@@ -181,8 +173,7 @@ Build the dashboard dynamically based on what is still incomplete:
 
 Include these rows **only if incomplete**:
 - **Modules** — show if any module is not `complete` (display "N of M complete")
-- **GitOps Automation** — show if `automation_type` is `gitops` or `both` AND `development.automation.gitops.status` is not `complete`
-- **Ansible Automation** — show if `automation_type` is `ansible` or `both` AND `development.automation.ansible.status` is not `complete`
+- **Automation** — show if `development.automation.status` is not `complete`
 - **E2E Tests** — show if `development.e2e.status` is not `complete`
 - **Health Check** — show if `development.healthCheck.status` is not `complete`
 
@@ -206,7 +197,7 @@ append:
 
 **Trigger:** All required workstreams are complete:
 - All modules have `status: complete`
-- All applicable automation children have `status: complete` (gitops and/or ansible based on `project.automation_type`)
+- `development.automation.status` is `complete`
 - `development.e2e.status` is `complete`
 - `development.healthCheck.status` is `complete`
 
@@ -311,75 +302,37 @@ When the author selects a module:
 
 **Option 3 — Back:** Return to dashboard.
 
-#### Automation workstream — GitOps
+#### Automation workstream
 
-Shown when the user selects the **GitOps Automation** row from the dashboard.
+Shown when the user selects the **Automation** row from the dashboard.
 
-If `development.automation.gitops.status` is already `complete`:
-> "GitOps automation is already complete. Would you like to reopen it?"
-> 1. Reopen (set back to `in_progress`)
-> 2. Back to dashboard
+Check if both `automation/ansible/` and `automation/gitops/` directories exist.
 
-Otherwise, check if `automation/gitops/` directory exists.
-
-**If `automation/gitops/` directory does not exist:**
-> "The GitOps automation skeleton hasn't been created yet. Would you like me to scaffold it?"
+**If automation directories do not exist:**
+> "The automation skeletons haven't been created yet. Would you like me to scaffold them?"
 > 1. Yes, scaffold automation directories
 > 2. Back to dashboard
 
 - **1** → follow `procedures/config-helper.md` (Automation Scaffolding section). When it completes, continue below.
 - **2** → return to dashboard.
 
-**If `automation/gitops/` directory exists**, show:
+**If automation directories exist**, show:
 
-> **GitOps Automation**
->
-> | # | Option |
-> |---|--------|
-> | 1 | Use GitOps helper (populates Helm charts with workloads) |
-> | 2 | Do it myself |
-> | 3 | Back to dashboard |
-
-- **1** → Set `development.automation.gitops.status: in_progress` if currently `not_started`, commit, then dispatch to `rhdp-publishing-house:gitops-helper` skill. When it returns, return to dashboard.
-- **2** → Set `development.automation.gitops.status: in_progress` if currently `not_started`, commit. Tell the author:
-  > "Work on your GitOps automation in `automation/gitops/bootstrap-infra/` (and `bootstrap-tenant/` if it exists). When you're done, come back and I'll mark it complete."
-  Return to dashboard.
-- **3** → return to dashboard.
-
-#### Automation workstream — Ansible
-
-Shown when the user selects the **Ansible Automation** row from the dashboard.
-
-If `development.automation.ansible.status` is already `complete`:
-> "Ansible automation is already complete. Would you like to reopen it?"
-> 1. Reopen (set back to `in_progress`)
-> 2. Back to dashboard
-
-Otherwise, check if `automation/ansible/` directory exists.
-
-**If `automation/ansible/` directory does not exist:**
-> "The Ansible automation skeleton hasn't been created yet. Would you like me to scaffold it?"
-> 1. Yes, scaffold automation directories
-> 2. Back to dashboard
-
-- **1** → follow `procedures/config-helper.md` (Automation Scaffolding section). When it completes, continue below.
-- **2** → return to dashboard.
-
-**If `automation/ansible/` directory exists**, show:
-
-> **Ansible Automation**
+> **Automation**
 >
 > | # | Option |
 > |---|--------|
 > | 1 | Use Ansible helper |
-> | 2 | Do it myself |
-> | 3 | Back to dashboard |
+> | 2 | Use GitOps helper (populates Helm charts with workloads) |
+> | 3 | Do it myself |
+> | 4 | Back to dashboard |
 
-- **1** → Set `development.automation.ansible.status: in_progress` if currently `not_started`, commit, then dispatch to `rhdp-publishing-house:ansible-helper` skill. When it returns, return to dashboard.
-- **2** → Set `development.automation.ansible.status: in_progress` if currently `not_started`, commit. Tell the author:
-  > "Build your Ansible automation manually in `automation/ansible/`. When you're done, come back and I'll mark it complete."
+- **1** → Set `development.automation.status: in_progress` if currently `not_started`, commit, then dispatch to `rhdp-publishing-house:ansible-helper` skill. When it returns, return to dashboard.
+- **2** → Set `development.automation.status: in_progress` if currently `not_started`, commit, then dispatch to `rhdp-publishing-house:gitops-helper` skill. When it returns, return to dashboard.
+- **3** → Set `development.automation.status: in_progress` if currently `not_started`, commit. Tell the author:
+  > "Work on your automation in `automation/ansible/` and/or `automation/gitops/`. When you're done, come back and I'll mark it complete."
   Return to dashboard.
-- **3** → return to dashboard.
+- **4** → return to dashboard.
 
 #### Option — E2E Tests
 
