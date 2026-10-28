@@ -52,7 +52,7 @@ When you arrive in the *Virtualization* view you will be on the *Overview* page 
 
 image::ocp5/module-01-intro/05_Virt_Overview.png[link=self, window=blank, width=100%]
 
-. Now, click on the *Virtual machines* item in top-central part of the screen and the overview will switch to a list of all virtual machine assets currently available in the cluster.
+. Now, click on the *Local cluster* icon in the tree, and then the *Virtual machines* tab in top-central part of the screen and the overview will switch to a list of all virtual machine assets currently available in the cluster.
 +
 image::ocp5/module-01-intro/06_Virtual_Machines.png[link=self, window=blank, width=100%]
 
@@ -176,7 +176,7 @@ image::ocp5/module-01-intro/20_Configuration_Tab.png[link=self, window=blank, wi
 +
 image::ocp5/module-01-intro/21_Storage_Tab.png[link=self, window=blank, width=100%]
 +
-In this environment, the default StorageClass, which defines the source and type of storage used for the disk, is called *ocs-external-storagecluster-ceph-rbd*. This storage is the default type provided by OpenShift Data Foundation (ODF) for running virtual machines. Each storage provider has different storage classes that define the characteristics of the storage backing the VM disk.
+In this environment, the default StorageClass, which defines the source and type of storage used for the disk, is called *ocs-external-storagecluster-ceph-rbd-virtualization*. This storage is the default type provided by OpenShift Data Foundation (ODF) for running virtual machines. Each storage provider has different storage classes that define the characteristics of the storage backing the VM disk.
 
 . Examine the network interfaces attached to the VM by clicking on the *Network* subtab:
 +

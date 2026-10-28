@@ -154,7 +154,7 @@ image::ocp5/module-05-tempinst/20_DB_Template_CreateVM.png[link=self, window=bla
 +
 image::ocp5/module-05-tempinst/21_DB_Template_VMRunning.png[link=self, window=blank, width=100%]
 
-. Lets log in and confirm that MariaDB is running automatically as we designed. Click on the *Console* tab, and login to the VM with the provided credentials.
+. Let us log in and confirm that MariaDB is running automatically as we designed. Click on the *Console* tab, and login to the VM with the provided credentials.
 +
 image::ocp5/module-05-tempinst/22_DB_Template_Console.png[link=self, window=blank, width=100%]
 
@@ -167,8 +167,9 @@ sudo mysql -u root
 +
 image::ocp5/module-05-tempinst/23_DB_Template_DBRunning.png[link=self, window=blank, width=100%]
 
-The database software is automatically running on our deployed template, just like we expected.
+Notice that the VM as deployed from template is not like it was with cloning a VM before. It has the host name of 'database-server' that we assigned when we deployed it, with no intervention on our part, and we didn't have to wait a few minutes after boot for MariaDB to install, it was already present on the template's cloned disk. 
 
+IMPORTANT: When you are finished, go ahead and stop the database-server virtual machine. We won't be using it again.
 
 ////
 [[create_win]]
@@ -564,4 +565,4 @@ image::ocp5/module-05-tempinst/32_Windows_Template_Running.png[link=self, window
 
 == Summary
 
-In this section we learned how to create our own custom virtual machine, automatically configure it to run specific workloads like databases and to save it as a template for future use. Creating our own custom templates in this manner can greatly expedite our workflows by having machines that meet our desired purposes and workflows ready at the touch of a button in OpenShift Virtualization.
+In this section we learned how to create our own custom virtual machine, automatically configure it to run specific workloads like databases, and to save it as a template for future use. Creating our own custom templates in this manner can greatly expedite our workflows by having machines that meet our desired purposes and workflows ready at the touch of a button in OpenShift Virtualization.

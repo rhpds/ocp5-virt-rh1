@@ -27,7 +27,7 @@ To begin, we'll add labels to the virtual machines by modifying their definition
 
 === Label the Virtual Machines
 
-. Click on *Virtualization -> VirtualMachines* in the left-side menu, click on the *vmexamples-{user}* project and *Start* your three imported virtual machines: *database-{user}, winweb01-{user}, and winweb02-{user}*, if they are not already running. You can verify this easily by sorting by the *Status* column in the right-side tree view.
+. Click on *VirtualMachines* in the left-side menu, click on the *vmexamples-{user}* project and *Start* your three imported virtual machines: *database-{user}, winweb01-{user}, and winweb02-{user}*, if they are not already running. You can verify this easily by sorting by the *Status* column in the right-side tree view.
 +
 image::2026_spring/module-07-workingvms/01_Imported_VMs_List.png[link=self, window=blank, width=100%]
 
@@ -141,7 +141,7 @@ image::2026_spring/module-07-workingvms/11_Database_YAML.png[link=self, window=b
 image::2026_spring/module-07-workingvms/12_WebApp_Success.png[link=self, window=blank, width=100%]
 
 . Refresh the screen a couple of times, you should see which webserver is responding, and that the count of user accesses rises with each refresh.
-. Return to your OpenShift console, and click on *Virtualization -> VirtualMachines* and shut down the web server that is handling your requests.
+. Return to your OpenShift console, and click on *VirtualMachines* and shut down the web server that is handling your requests.
 +
 image::2026_spring/module-07-workingvms/13_WinWeb01_Shutdown.png[link=self, window=blank, width=100%]
 

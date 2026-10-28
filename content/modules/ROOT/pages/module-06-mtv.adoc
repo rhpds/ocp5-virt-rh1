@@ -226,7 +226,7 @@ image::ocp5/module-06-mtv/15_Completed_VMWARE_Plan.png[link=self, window=blank, 
 
 . The selected virtual machines have now been successfully migrated to OpenShift Virtualization and can be worked with as you would any other virtual machine.
 
-. Click on *Virtualization -> VirtualMachines* in the left side navigation menu, and you should see them listed in your *vmexamples-{user}* project alongside any other created VMs like *fedora01*.
+. Click on *VirtualMachines* in the left side navigation menu, and you should see them listed in your *vmexamples-{user}* project alongside VMs like *fedora01*, *fedora02*, and any other VM we have worked with in the previous modules.
 +
 image::ocp5/module-06-mtv/16_VMs_In_Openshift.png[link=self, window=blank, width=100%] 
 

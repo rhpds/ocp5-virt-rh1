@@ -227,14 +227,15 @@ image::ocp5/module-04-networking/21_RHEL_Template.png[link=self, window=blank, w
 
 . You will be taken back to the *VirtualMachines* view, and you can watch as the VM provisions and starts up. 
 
-. Once it is up and running, review the newly created virtual machine. In the *Overview* tab, the *Network* tile will show that we are attached to the default network, but it will have an IP address assigned from the UserDefinedNetwork.
+. Once it is up and running, review the newly created virtual machine. In the *Overview* tab, the *Network* tile will show that we are attached to the default network, but it will now have an IP address assigned from the UserDefinedNetwork.
 +
 image::ocp5/module-04-networking/22_UDN_Network_Tile.png[link=self, window=blank, width=100%]
 
-. Switch to the *Configuration* tab, and click on the *Network* section. Notice it only shows a default connection to the *pod-network*, and not an additional interface like we attached above.
+. To confirm this, switch to the *Configuration* tab, and click on the *Network* section. Notice that unlike when we added a network interface before, this virtual machine only shows the default connection to the *pod-network*. That's the magic of UDN: having a routable, reachable, external IP, but also be connected to the cluster SDN for administrative purposes. 
 +
 image::ocp5/module-04-networking/23_UDN_Network_Config.png[link=self, window=blank, width=100%]
 
+////
 . Switch to the Console tab and login to the VM using the provided guest credentials.
 
 . Use the *ping* command to test connectivity to a public website like *www.google.com* to demonstrate that we have network communication on our Primary UDN.
@@ -244,7 +245,7 @@ image::ocp5/module-04-networking/24_UDN_RHEL_Console.png[link=self, window=blank
 * The VM has assigned a IP from the subnet defined
 * The VM automatically gets the gateway configuration from the DHCP server.
 * The VM has access to internet using the User Defined Network.
-
+////
 
 == Summary
 

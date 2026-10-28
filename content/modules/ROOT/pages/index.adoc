@@ -1,4 +1,4 @@
-= Welcome to {lab_name}!
+= Welcome to the OpenShift Virtualization Roadshow 5!
 
 [%hardbreaks]
 == Introduction
