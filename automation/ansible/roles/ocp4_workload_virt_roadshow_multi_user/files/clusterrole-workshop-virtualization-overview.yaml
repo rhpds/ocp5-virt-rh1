@@ -36,11 +36,6 @@ rules:
   - "machineconfigpools"
   verbs: ["get", "list", "watch"]
 
-# Cluster configmaps for overview and console plugins
-- apiGroups: [""]
-  resources: ["configmaps"]
-  verbs: ["get", "list", "watch"]
-
 # Version box, VMs and VMIs (needed for Migrations page)
 - apiGroups: ["kubevirt.io"]
   resources: ["kubevirts", "virtualmachines", "virtualmachineinstances"]
@@ -92,14 +87,6 @@ rules:
 - apiGroups: ["cdi.kubevirt.io"]
   resources: ["cdiconfigs", "storageprofiles"]
   verbs: ["get", "list", "watch"]
-
-# Allow workshop users to clone/manage VM templates. The Red Hat-provided
-# templates live in the read-only "openshift" namespace, and the console's
-# "Clone template" action defaults the clone target to that same namespace,
-# so without create access there the clone fails with a Forbidden error.
-- apiGroups: ["template.openshift.io"]
-  resources: ["templates"]
-  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 
 # Template subresources used by the "Customize VM from template" flow
 - apiGroups: ["subresources.template.kubevirt.io"]
