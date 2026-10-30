@@ -1,0 +1,17 @@
+---
+- name: Fail when the LLM endpoint for opencode is not configured
+  ansible.builtin.assert:
+    that:
+    - ocp4_workload_opencode_mcp_llm_api_url | length > 0
+    - ocp4_workload_opencode_mcp_llm_api_key | length > 0
+    - ocp4_workload_opencode_mcp_llm_model | length > 0
+    fail_msg: >-
+      ocp4_workload_opencode_mcp_llm_api_url, ocp4_workload_opencode_mcp_llm_api_key
+      and ocp4_workload_opencode_mcp_llm_model must be set.
+    quiet: true
+
+# Leave this as the last task in the playbook.
+- name: Pre_workload tasks complete
+  when: not silent|bool
+  ansible.builtin.debug:
+    msg: "Pre-Workload tasks completed successfully."

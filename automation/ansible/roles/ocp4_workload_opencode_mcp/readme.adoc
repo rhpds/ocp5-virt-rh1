@@ -1,0 +1,32 @@
+= ocp4_workload_opencode_mcp - OpenShift MCP server and opencode for lab users
+
+== Role overview
+
+Brings the opencode capability from `ocp5-first-look-lab` to a multi-user cluster:
+
+* One OpenShift MCP server (`openshift-mcp`, Service only) in `passthrough` auth mode, so every call
+  runs with the bearer token the client sends.
+* One in-cluster build of the `mcp-cli` image (UBI nodejs + `oc` + `opencode-ai`) in `mcp-cli`.
+* One `mcp-cli` pod per user in `mcp-cli-userN`. `userN` can only exec into, read and delete pods there.
+  opencode is configured with the lab LLM and with the MCP server as `openshift`.
+
+An attendee logged in as `userN` starts opencode with:
+
+----
+oc exec -it -n mcp-cli-$(oc whoami) deploy/mcp-cli -- env OPENSHIFT_MCP_TOKEN=$(oc whoami -t) opencode
+----
+
+If opencode does not start (an earlier session is still running in the pod), delete the pod and run the command again:
+
+----
+oc delete pod -n mcp-cli-$(oc whoami) -l app=mcp-cli
+----
+
+Removal is not implemented; the resources go away with the cluster.
+
+== The defaults variable file
+
+* `./defaults/main.yml` contains all the variables that control the deployment.
+* `ocp4_workload_opencode_mcp_llm_api_url` (with `/v1`), `ocp4_workload_opencode_mcp_llm_api_key` and
+  `ocp4_workload_opencode_mcp_llm_model` are mandatory.
+* A variable silent=True can be passed to suppress debug messages.

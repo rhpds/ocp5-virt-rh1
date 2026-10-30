@@ -1,0 +1,4 @@
+---
+- name: Print not implemented message
+  ansible.builtin.debug:
+    msg: "Removing the OpenShift MCP server and opencode is not implemented."

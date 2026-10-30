@@ -1,0 +1,16 @@
+---
+galaxy_info:
+  role_name: ocp4_workload_opencode_mcp
+  author:
+  - Juliano Mohr <juliano@redhat.com>
+  description: |
+    Deploys the OpenShift MCP server and a per-user opencode (mcp-cli) pod
+    that attendees start from the Showroom terminal
+  platforms: []
+  license: GNU General Public License v3.0
+  galaxy_tags:
+  - ocp4
+  - openshift
+  - mcp
+  - opencode
+dependencies: []
