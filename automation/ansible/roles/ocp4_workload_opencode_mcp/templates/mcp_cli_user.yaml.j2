@@ -1,0 +1,142 @@
+{% for user_number in range(1, ocp4_workload_opencode_mcp_num_users | int + 1) %}
+{% set _user = ocp4_workload_opencode_mcp_user_base ~ user_number %}
+{% set _namespace = ocp4_workload_opencode_mcp_namespace_base ~ _user %}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ _namespace }}
+---
+# Just enough for `oc exec deploy/mcp-cli` and for deleting a stuck pod
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: mcp-cli-user
+  namespace: {{ _namespace }}
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch", "delete"]
+- apiGroups: [""]
+  resources: ["pods/exec"]
+  verbs: ["create"]
+- apiGroups: [""]
+  resources: ["pods/log"]
+  verbs: ["get"]
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: mcp-cli-user
+  namespace: {{ _namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: mcp-cli-user
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: {{ _user }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: llm-credentials
+  namespace: {{ _namespace }}
+type: Opaque
+stringData:
+  apitoken: {{ ocp4_workload_opencode_mcp_llm_api_key | to_json }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opencode-config
+  namespace: {{ _namespace }}
+data:
+  # {env:VAR} is resolved by opencode at startup. OPENSHIFT_MCP_TOKEN is passed
+  # on the oc exec command line: env OPENSHIFT_MCP_TOKEN=$(oc whoami -t) opencode
+  opencode.json: |
+    {
+      "$schema": "https://opencode.ai/config.json",
+      "autoupdate": false,
+      "share": "disabled",
+      "model": {{ ('lab-llm/' ~ ocp4_workload_opencode_mcp_llm_model) | to_json }},
+      "provider": {
+        "lab-llm": {
+          "npm": "@ai-sdk/openai-compatible",
+          "name": "Lab LLM",
+          "options": {
+            "baseURL": {{ ocp4_workload_opencode_mcp_llm_api_url | regex_replace('/$', '') | to_json }},
+            "apiKey": "{env:LLM_API_KEY}"
+          },
+          "models": {
+            {{ ocp4_workload_opencode_mcp_llm_model | to_json }}: {
+              "name": {{ ocp4_workload_opencode_mcp_llm_model | to_json }}
+            }
+          }
+        }
+      },
+      "mcp": {
+        "openshift": {
+          "type": "remote",
+          "url": "http://{{ ocp4_workload_opencode_mcp_server_name }}.{{ ocp4_workload_opencode_mcp_server_namespace }}.svc:8080/mcp",
+          "headers": {
+            "Authorization": "Bearer {env:OPENSHIFT_MCP_TOKEN}"
+          },
+          "enabled": true
+        }
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-cli
+  namespace: {{ _namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mcp-cli
+  template:
+    metadata:
+      labels:
+        app: mcp-cli
+    spec:
+      # opencode only talks to the cluster through the MCP server with the user's token
+      automountServiceAccountToken: false
+      containers:
+      - name: mcp-cli
+        image: image-registry.openshift-image-registry.svc:5000/{{ ocp4_workload_opencode_mcp_build_namespace }}/mcp-cli:latest
+        imagePullPolicy: Always
+        env:
+        - name: OPENCODE_CONFIG
+          # Not under /etc/opencode: opencode treats that as a managed config that can't be overridden
+          value: /opt/app-root/config/opencode.json
+        - name: LLM_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: llm-credentials
+              key: apitoken
+        volumeMounts:
+        - name: opencode-config
+          mountPath: /opt/app-root/config
+          readOnly: true
+        resources:
+          {{ ocp4_workload_opencode_mcp_cli_resources | to_nice_yaml(indent=2) | indent(10) }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+      volumes:
+      - name: opencode-config
+        configMap:
+          name: opencode-config
+{% endfor %}

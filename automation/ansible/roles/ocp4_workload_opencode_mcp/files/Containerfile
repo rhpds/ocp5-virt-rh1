@@ -1,0 +1,23 @@
+FROM registry.access.redhat.com/ubi9/nodejs-22:latest
+
+ARG OC_CLIENT_URL=https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz
+ARG OPENCODE_VERSION=latest
+
+USER 0
+
+RUN dnf install -y --setopt=install_weak_deps=False jq && \
+    dnf clean all && \
+    curl -fsSL "${OC_CLIENT_URL}" | tar -xz -C /usr/local/bin oc kubectl && \
+    npm install -g "opencode-ai@${OPENCODE_VERSION}" && \
+    npm cache clean --force
+
+# opencode writes its state, cache and provider packages under $HOME.
+# Group 0 needs write access since OpenShift runs the pod with a random UID.
+RUN mkdir -p /opt/app-root/src/.config/opencode /opt/app-root/src/.local/share/opencode /opt/app-root/src/.cache/opencode && \
+    chgrp -R 0 /opt/app-root/src && \
+    chmod -R g=u /opt/app-root/src
+
+USER 1001
+WORKDIR /opt/app-root/src
+
+CMD ["sleep", "infinity"]

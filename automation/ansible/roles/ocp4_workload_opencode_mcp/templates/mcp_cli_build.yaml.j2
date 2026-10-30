@@ -1,0 +1,57 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ ocp4_workload_opencode_mcp_build_namespace }}
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: mcp-cli
+  namespace: {{ ocp4_workload_opencode_mcp_build_namespace }}
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: mcp-cli
+  namespace: {{ ocp4_workload_opencode_mcp_build_namespace }}
+spec:
+  runPolicy: Serial
+  source:
+    type: Dockerfile
+    dockerfile: |
+      {{ lookup('file', 'Containerfile') | indent(6) }}
+  strategy:
+    type: Docker
+    dockerStrategy:
+      buildArgs:
+      - name: OC_CLIENT_URL
+        value: "{{ ocp4_workload_opencode_mcp_oc_client_url }}"
+      - name: OPENCODE_VERSION
+        value: "{{ ocp4_workload_opencode_mcp_opencode_version }}"
+  output:
+    to:
+      kind: ImageStreamTag
+      name: mcp-cli:latest
+  # Builds on creation and whenever the BuildConfig (e.g. the Containerfile) changes
+  triggers:
+  - type: ConfigChange
+  resources:
+    {{ ocp4_workload_opencode_mcp_build_resources | to_nice_yaml(indent=2) | indent(4) }}
+---
+# Let the per-user mcp-cli pods pull the image
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: mcp-cli-image-puller
+  namespace: {{ ocp4_workload_opencode_mcp_build_namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:image-puller
+subjects:
+{% for user_number in range(1, ocp4_workload_opencode_mcp_num_users | int + 1) %}
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: system:serviceaccounts:{{ ocp4_workload_opencode_mcp_namespace_base }}{{ ocp4_workload_opencode_mcp_user_base }}{{ user_number }}
+{% endfor %}

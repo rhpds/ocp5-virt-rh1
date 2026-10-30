@@ -1,0 +1,101 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ ocp4_workload_opencode_mcp_server_namespace }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ ocp4_workload_opencode_mcp_server_name }}
+  namespace: {{ ocp4_workload_opencode_mcp_server_namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ ocp4_workload_opencode_mcp_server_name }}-view
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: view
+subjects:
+- kind: ServiceAccount
+  name: {{ ocp4_workload_opencode_mcp_server_name }}
+  namespace: {{ ocp4_workload_opencode_mcp_server_namespace }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mcp-config
+  namespace: {{ ocp4_workload_opencode_mcp_server_namespace }}
+data:
+  # passthrough: every call uses the bearer token sent by the client,
+  # so opencode acts with the attendee's own OpenShift permissions
+  config.toml: |
+    toolsets = {{ ocp4_workload_opencode_mcp_server_toolsets | to_json }}
+    log_level = 0
+    port = "8080"
+    read_only = false
+    cluster_auth_mode = "passthrough"
+    skip_jwt_verification = true
+    server_instructions = """
+    This MCP server provides access to a live OpenShift cluster. Before executing any
+    destructive operation (delete, scale down, patch, restart), clearly warn the user
+    about the consequences and ask for explicit confirmation. Never delete namespaces,
+    persistent volumes, or cluster-scoped resources without double confirmation. When
+    in doubt, prefer read-only operations and present findings before proposing changes.
+    """
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ ocp4_workload_opencode_mcp_server_name }}
+  namespace: {{ ocp4_workload_opencode_mcp_server_namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ ocp4_workload_opencode_mcp_server_name }}
+  template:
+    metadata:
+      labels:
+        app: {{ ocp4_workload_opencode_mcp_server_name }}
+      annotations:
+        # Restart the server when the config changes
+        checksum/config: "{{ (ocp4_workload_opencode_mcp_server_toolsets | to_json) | hash('sha1') }}"
+    spec:
+      serviceAccountName: {{ ocp4_workload_opencode_mcp_server_name }}
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: {{ ocp4_workload_opencode_mcp_server_name }}
+        image: {{ ocp4_workload_opencode_mcp_server_image }}
+        command: ["/openshift-mcp-server"]
+        args: ["--config", "/etc/mcp/config.toml"]
+        ports:
+        - containerPort: 8080
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+        volumeMounts:
+        - name: mcp-config
+          mountPath: /etc/mcp
+      volumes:
+      - name: mcp-config
+        configMap:
+          name: mcp-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ ocp4_workload_opencode_mcp_server_name }}
+  namespace: {{ ocp4_workload_opencode_mcp_server_namespace }}
+spec:
+  selector:
+    app: {{ ocp4_workload_opencode_mcp_server_name }}
+  ports:
+  - port: 8080
+    targetPort: 8080

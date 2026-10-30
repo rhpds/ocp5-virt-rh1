@@ -1,0 +1,55 @@
+---
+become_override: false
+ocp_username: opentlc-mgr
+silent: false
+
+# Users get one opencode pod each, in namespace
+# {{ ocp4_workload_opencode_mcp_namespace_base }}{{ ocp4_workload_opencode_mcp_user_base }}{{ user_number }}
+# Attendees (logged in as userN) start opencode with:
+#   oc exec -it -n mcp-cli-$(oc whoami) deploy/mcp-cli -- env OPENSHIFT_MCP_TOKEN=$(oc whoami -t) opencode
+ocp4_workload_opencode_mcp_num_users: 1
+ocp4_workload_opencode_mcp_user_base: user
+ocp4_workload_opencode_mcp_namespace_base: mcp-cli-
+
+# --------------------------------
+# OpenShift MCP server (one per cluster)
+# --------------------------------
+ocp4_workload_opencode_mcp_server_namespace: openshift-mcp
+ocp4_workload_opencode_mcp_server_name: openshift-mcp-server
+ocp4_workload_opencode_mcp_server_image: registry.redhat.io/openshift-mcp-tech-preview/openshift-mcp-server-rhel9:0.3
+ocp4_workload_opencode_mcp_server_toolsets:
+- core
+- config
+- kubevirt
+
+# --------------------------------
+# mcp-cli image (opencode on UBI), built once in the cluster
+# --------------------------------
+ocp4_workload_opencode_mcp_build_namespace: mcp-cli
+ocp4_workload_opencode_mcp_opencode_version: 1.19.5
+ocp4_workload_opencode_mcp_oc_client_url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz
+ocp4_workload_opencode_mcp_build_resources:
+  limits:
+    cpu: "2"
+    memory: 4Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+# How long to wait for the image build to finish (retries x 10s)
+ocp4_workload_opencode_mcp_build_retries: 90
+
+# --------------------------------
+# LLM used by opencode (OpenAI-compatible endpoint, include the /v1 suffix)
+# --------------------------------
+ocp4_workload_opencode_mcp_llm_api_url: ""
+ocp4_workload_opencode_mcp_llm_api_key: ""
+ocp4_workload_opencode_mcp_llm_model: ""
+
+# Per-user mcp-cli pod
+ocp4_workload_opencode_mcp_cli_resources:
+  limits:
+    cpu: "1"
+    memory: 2Gi
+  requests:
+    cpu: 100m
+    memory: 512Mi
