@@ -108,7 +108,7 @@ image::ocp5/module-06-mtv/03_VMware_Source_Provider.png[link=self, window=blank,
 +
 image::ocp5/module-06-mtv/04_VM_List.png[link=self, window=blank, width=100%]
 +
-NOTE: You will see a column called *Concerns* on this page, you can over over the warnings and see what each one is. Most of these warnings are because the source VM is not currently powered on, and it could not be inspected. In a real world migration scenario, having the Migration Toolkit advise you of issues with virtual machines before you migrate is an extremely valuable tool.
+NOTE: You will see a column called *Concerns* on this page, you can hover over the warnings and see what each one is. Most of these warnings are because the source VM is not currently powered on, and it could not be inspected. In a real world migration scenario, having the Migration Toolkit advise you of issues with virtual machines before you migrate is an extremely valuable tool.
 +
 image::ocp5/module-06-mtv/05_VM_Warnings.png[link=self, window=blank, width=100%]
 
@@ -116,7 +116,7 @@ image::ocp5/module-06-mtv/05_VM_Warnings.png[link=self, window=blank, width=100%
 +
 image::ocp5/module-06-mtv/06_Mig_Plan_Net.png[link=self, window=blank, width=100%]
 
-. This is followed by the *Storage map* screen where you will be tasked with providing storage details for your migration plan. Select the radio button to *Use new storage map*, then from the Source storage dropdowns make sure that the workload share from the VMware vSphere environment is listed, and from the Target storage dropdowns the default storage class *ocs-external-storagecluster-ceph-rbd* are selected for both. Finally, fill in the Storage map name with *default-storage-map* and click the *Next* button.
+. This is followed by the *Storage map* screen where you will be tasked with providing storage details for your migration plan. Select the radio button to *Use new storage map*, then from the Source storage dropdowns make sure that the *workload_share* from the VMware vSphere environment is listed, and from the Target storage dropdowns the default storage class *ocs-external-storagecluster-ceph-rbd* are selected for both. Finally, fill in the Storage map name with *default-storage-map* and click the *Next* button.
 +
 image::ocp5/module-06-mtv/07_Mig_Plan_Stor.png[link=self, window=blank, width=100%]
 

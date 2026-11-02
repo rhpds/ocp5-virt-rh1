@@ -120,7 +120,7 @@ image::ocp5/module-05-tempinst/12_MariaDB_Login.png[link=self, window=blank, wid
 +
 image::ocp5/module-05-tempinst/13_Action_Save_Template.png[link=self, window=blank, width=100%]
 
-. The *Save as template* dialog will open, and you can create a custom name to save your template as in this case: *centos-stream10-database-2xmedium*. It can only be saved in a project that you whave write access to, so select your *vmexamples-{user}* project, and then from the *category* dropdown, select *Databases* to help sort it correctly, then click the *Save as Template* button to continue.
+. The *Save as template* dialog will open, and you can create a custom name to save your template as in this case: *centos-stream10-mariadb-2xmedium*. It can only be saved in a project that you whave write access to, so select your *vmexamples-{user}* project, and then from the *category* dropdown, select *Databases* to help sort it correctly, then click the *Save as Template* button to continue.
 +
 image::ocp5/module-05-tempinst/14_Save_Template_Dialog.png[link=self, window=blank, width=100%]
 
