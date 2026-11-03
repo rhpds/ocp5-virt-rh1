@@ -1,6 +1,6 @@
 = Conclusion
 
-image::2025_spring/conclusion/00_Thank_You.png[link=self, window=blank, width=100%]
+image::ocp5/conclusion/00_Thank_You.png[link=self, window=blank, width=100%]
 
 We hope you have enjoyed {lab_name} and learning more about *OpenShift Virtualization* and how it can be a useful tool for both the import and management of legacy virtual machines, as well as a stepping stone on the path of application modernization.
 
@@ -13,7 +13,9 @@ We hope you have enjoyed {lab_name} and learning more about *OpenShift Virtualiz
 
 * OpenShift Virtualization is fully integrated with a broad ecosystem of partner products, with more coming on board each day. Check with your preferred hardware and software vendors to see if they support OpenShift Virtualization.
 
-* OpenShift Virtualization can help you set a strong foundation for traditional workloads, while building skills for the future with a modern application platform.
+* OpenShift Virtualization works across major cloud providers including: AWS, Azure, Google Cloud, IBM Cloud, and Oracle Cloud, giving you flexibility to run virtualized workloads as part of your hybrid cloud strategy.
+
+* OpenShift Virtualization can help you establish a strong foundation for traditional workloads while creating a path to modernization. By running virtual machines alongside containerized applications on a common platform, your teams can build cloud-native skills, adopt modern development practices, and modernize applications at a pace that fits your business.
 
 
 [additional_info]
@@ -29,7 +31,18 @@ We hope you have enjoyed {lab_name} and learning more about *OpenShift Virtualiz
 
 Click the link https://www.redhat.com/en/resources/15-reasons-adopt-openshift-virtualization-ebook[here^] or scan the QR code below to learn more:
 
-image::2025_spring/conclusion/01_Ebook.png[link=self, window=blank, width=50%]
+image::ocp5/conclusion/01_Ebook.png[link=self, window=blank, width=50%]
+
+
+=== Interactive Demos
+
+* Check out more bite-sized interactive demos on OpenShift Virtualization
+* These demos provide step-by-step scenarios to guide you through the fundamentals of using Red Hat OpenShift Virtualization 
+
+Click http://red.ht/virt_interact[here^] or scan the QR code below to learn more: 
+
+image::ocp5/conclusion/02_Interactive_demos.png[link=self, window=blank, width=50%]
+
 
 === Red Hat Learning Services: DO317 Managing Virtual Machines with Red Hat OpenShift Virtualization
 
@@ -41,8 +54,18 @@ image::2025_spring/conclusion/01_Ebook.png[link=self, window=blank, width=50%]
 
 Click the link https://www.redhat.com/en/services/training/managing-virtual-machines-red-hat-openshift-virtualization-exam[here^] or scan the QR code below to learn more:
 
+image::ocp5/conclusion/02_DO317_Training.png[link=self, window=blank, width=50%]
 
-image::2025_spring/conclusion/02_DO317_Training.png[link=self, window=blank, width=50%]
+
+=== Plan a VM Migration with the Red Hat OpenShift Migration Advisor
+
+* Evaluate existing workloads and determine a direct path toward Red Hat OpenShift before committing to a migration strategy.
+* Red Hat® OpenShift® migration advisor is a no-cost, self-service tool that checks whether an organization’s virtual machines (VMs) are ready to migrate to Red Hat OpenShift. The advisor connects directly to a VMware environment to offer automated, useful feedback on how to prepare an IT environment for migration. 
+
+Click the link http://red.ht/oma[here^] or scan the QR code for more information:
+
+image::ocp5/conclusion/04_OpenShift_OMA.png[link=self, window=blank, width=50%]
+
 
 === Virtualization Migration Assessment
 
@@ -54,5 +77,5 @@ image::2025_spring/conclusion/02_DO317_Training.png[link=self, window=blank, wid
 
 Click the link https://www.redhat.com/en/resources/virtualization-migration-assessment-datasheet[here^] or scan the QR code below to learn more:
 
-image::2025_spring/conclusion/03_VMA_QR.png[link=self, window=blank, width=50%]
+image::ocp5/conclusion/05_VMA_QR.png[link=self, window=blank, width=50%]
 
