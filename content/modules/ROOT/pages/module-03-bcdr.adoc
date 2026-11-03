@@ -6,8 +6,8 @@ Data Protection is a major topic of conversation when it comes to any enterprise
 
 Red Hat Solutions Include:
 
-* https://docs.redhat.com/en/documentation/openshift_container_platform/4.21/html/backup_and_restore/oadp-application-backup-and-restore[*OpenShift APIs for Data Protection (OADP)*^]: A Red Hat operator which provides a storage agnostic method to back up and restore OpenShift objects, including virtual machines.
-* https://docs.redhat.com/en/documentation/red_hat_openshift_data_foundation/4.21/html/configuring_openshift_data_foundation_disaster_recovery_for_openshift_workloads/metro-dr-solution[*OpenShift Data Foundation Metro-DR*^] and https://docs.redhat.com/en/documentation/red_hat_openshift_data_foundation/4.21/html/configuring_openshift_data_foundation_disaster_recovery_for_openshift_workloads/rdr-solution[*OpenShift Data Foundation Regional-DR*^]
+* https://docs.redhat.com/en/documentation/openshift_container_platform/5.0/html/backup_and_restore/oadp-application-backup-and-restore[*OpenShift APIs for Data Protection (OADP)*^]: A Red Hat operator which provides a storage agnostic method to back up and restore OpenShift objects, including virtual machines.
+* https://docs.redhat.com/en/documentation/red_hat_openshift_data_foundation/4.22/html/configuring_openshift_data_foundation_disaster_recovery_for_openshift_workloads/metro-dr-solution[*OpenShift Data Foundation Metro-DR*^] and https://docs.redhat.com/en/documentation/red_hat_openshift_data_foundation/4.22/html/configuring_openshift_data_foundation_disaster_recovery_for_openshift_workloads/rdr-solution[*OpenShift Data Foundation Regional-DR*^]
 
 Ecosystem Partner Solutions Include:
 

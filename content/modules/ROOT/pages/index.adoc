@@ -83,13 +83,13 @@ provides the proven virtualization functionality of Red Hat OpenShift to deploy,
 
 The following chart explains the features that are entitled with each subscription and may help you decide which version of OpenShift is best for your environment.
 
-image::2025_spring/index/01_openshift_comparison_chart.png[link=self, window=blank, width=100%]
+image::ocp5/index/00_openshift_comparison_chart.png[link=self, window=blank, width=100%]
 
 A full feature breakdown across all OpenShift editions can be found in Appendix 1 of the https://www.redhat.com/en/resources/self-managed-openshift-subscription-guide#section-13[Self-managed OpenShift Subscription Guide^].
 
 == Next steps
 
-If you would like to learn more about OpenShift Virtualization, please visit the https://www.redhat.com/en/technologies/cloud-computing/openshift/virtualization[landing page^], review the https://docs.redhat.com/en/documentation/openshift_container_platform/4.22/html/virtualization/about[documentation^], enjoy one of our https://www.redhat.com/en/interactive-experiences#virtualization[interactive experiences^], or view some of our demo videos on https://www.youtube.com/playlist?list=PLaR6Rq6Z4IqeQeTosfoFzTyE_QmWZW6n_[YouTube^].
+If you would like to learn more about OpenShift Virtualization, please visit the https://www.redhat.com/en/technologies/cloud-computing/openshift/virtualization[landing page^], review the https://docs.redhat.com/en/documentation/openshift_container_platform/5.0/html/virtualization/about[documentation^], enjoy one of our https://www.redhat.com/en/interactive-experiences#virtualization[interactive experiences^], or view some of our demo videos on https://www.youtube.com/playlist?list=PLaR6Rq6Z4IqeQeTosfoFzTyE_QmWZW6n_[YouTube^].
 
 == Requirements for the Lab Environment
 
@@ -112,11 +112,11 @@ Your login is available with:
 
 This edition of the OpenShift Virtualization Roadshow has been developed using the following software versions:
 
-* Red Hat OpenShift 5.0-rc7
-* Red Hat OpenShift Virtualization 5.0.0-110
+* Red Hat OpenShift 5.0
+* Red Hat OpenShift Virtualization 5.0.0-117
 * Red Hat OpenShift Data Foundation 4.22.5
 * Red Hat OpenShift API for Data Protection (OADP) 1.6.1
-* Red Hat OpenShift Lightspeed 1.1.4
+* Red Hat OpenShift Lightspeed 2.0
 * Red Hat Migration Toolkit for Virtual Machines 2.12.9
 
-(Accurate as of October 20, 2026)
+(Accurate as of November 3, 2026)
