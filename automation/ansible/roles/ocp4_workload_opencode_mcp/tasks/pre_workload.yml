@@ -3,12 +3,25 @@
   ansible.builtin.assert:
     that:
     - ocp4_workload_opencode_mcp_llm_api_url | length > 0
-    - ocp4_workload_opencode_mcp_llm_api_key | length > 0
     - ocp4_workload_opencode_mcp_llm_model | length > 0
     fail_msg: >-
-      ocp4_workload_opencode_mcp_llm_api_url, ocp4_workload_opencode_mcp_llm_api_key
-      and ocp4_workload_opencode_mcp_llm_model must be set.
+      ocp4_workload_opencode_mcp_llm_api_url and ocp4_workload_opencode_mcp_llm_model must be set.
     quiet: true
+
+- name: Fail when the shared LLM key is not configured
+  when: not ocp4_workload_opencode_mcp_llm_per_user_keys | bool
+  ansible.builtin.assert:
+    that:
+    - ocp4_workload_opencode_mcp_llm_api_key | length > 0
+    fail_msg: >-
+      ocp4_workload_opencode_mcp_llm_api_key must be set
+      when ocp4_workload_opencode_mcp_llm_per_user_keys is false.
+    quiet: true
+
+- name: Check the prerequisites for per-user LLM keys
+  when: ocp4_workload_opencode_mcp_llm_per_user_keys | bool
+  ansible.builtin.include_tasks:
+    file: ./check_litellm_collection.yml
 
 # Leave this as the last task in the playbook.
 - name: Pre_workload tasks complete

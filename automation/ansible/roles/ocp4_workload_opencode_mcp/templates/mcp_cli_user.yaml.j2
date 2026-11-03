@@ -1,6 +1,11 @@
 {% for user_number in range(1, ocp4_workload_opencode_mcp_num_users | int + 1) %}
 {% set _user = ocp4_workload_opencode_mcp_user_base ~ user_number %}
 {% set _namespace = ocp4_workload_opencode_mcp_namespace_base ~ _user %}
+{% if ocp4_workload_opencode_mcp_llm_per_user_keys | bool %}
+{%   set _llm_api_key = _ocp4_workload_opencode_mcp_llm_user_keys['virtkey-' ~ guid ~ '-' ~ _user] %}
+{% else %}
+{%   set _llm_api_key = ocp4_workload_opencode_mcp_llm_api_key %}
+{% endif %}
 ---
 apiVersion: v1
 kind: Namespace
@@ -48,7 +53,7 @@ metadata:
   namespace: {{ _namespace }}
 type: Opaque
 stringData:
-  apitoken: {{ ocp4_workload_opencode_mcp_llm_api_key | to_json }}
+  apitoken: {{ _llm_api_key | to_json }}
 ---
 apiVersion: v1
 kind: ConfigMap
