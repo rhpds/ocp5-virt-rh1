@@ -172,6 +172,8 @@ To begin, we'll add labels to the virtual machines by modifying their definition
 
 === Label the Virtual Machines
 
+IMPORTANT: The lab cluster is shared by all participants. If you started the migration in the previous module, first *Stop* the migrated *database-{user}*, *winweb01-{user}* and *winweb02-{user}* virtual machines in the *vmexamples-{user}* project, so that you do not run two copies of the application.
+
 . Click on *VirtualMachines* in the left-side menu, click on the *vmimported-{user}* project and *Start* your three imported virtual machines: *database, winweb01, and winweb02*. You can verify this easily by sorting by the *Status* column in the right-side tree view.
 +
 image::ocp5/module-07-workingvms/15_Staged_VMs_List.png[link=self, window=blank, width=100%]
