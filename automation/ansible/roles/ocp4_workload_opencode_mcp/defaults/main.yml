@@ -21,6 +21,12 @@ ocp4_workload_opencode_mcp_server_toolsets:
 - core
 - config
 - kubevirt
+# Small request so the server is not the first pod evicted under memory pressure.
+# No limits: one replica serves all users and its usage has not been measured.
+ocp4_workload_opencode_mcp_server_resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
 
 # --------------------------------
 # mcp-cli image (opencode on UBI), built once in the cluster
@@ -51,11 +57,12 @@ ocp4_workload_opencode_mcp_llm_model: ""
 # litellm_master_key must be set. Lightspeed keeps using the lab's shared key.
 ocp4_workload_opencode_mcp_llm_per_user_keys: false
 
-# Per-user mcp-cli pod
+# Per-user mcp-cli pod. It idles in `sleep` until the user runs opencode, so
+# requests stay small (20 users = 0.4 CPU / 2.5Gi) and the limits let it burst.
 ocp4_workload_opencode_mcp_cli_resources:
   limits:
     cpu: "1"
     memory: 2Gi
   requests:
-    cpu: 100m
-    memory: 512Mi
+    cpu: 20m
+    memory: 128Mi

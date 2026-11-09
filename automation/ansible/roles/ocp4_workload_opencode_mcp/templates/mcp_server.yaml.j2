@@ -76,6 +76,8 @@ spec:
         args: ["--config", "/etc/mcp/config.toml"]
         ports:
         - containerPort: 8080
+        resources:
+          {{ ocp4_workload_opencode_mcp_server_resources | to_nice_yaml(indent=2) | indent(10) }}
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
