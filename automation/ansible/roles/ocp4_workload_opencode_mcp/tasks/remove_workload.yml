@@ -1,20 +1,8 @@
 ---
-# Everything in the cluster goes away with the cluster. Only state kept in
-# external services is removed here.
-- name: Check the prerequisites for per-user LLM keys
-  when: ocp4_workload_opencode_mcp_llm_per_user_keys | bool
-  ansible.builtin.include_tasks:
-    file: ./check_litellm_collection.yml
-
-- name: Delete the LiteLLM virtual key of each user
-  when: ocp4_workload_opencode_mcp_llm_per_user_keys | bool
-  ansible.builtin.include_role:
-    name: rhpds.litellm_virtual_keys.ocp4_workload_litellm_virtual_keys
-    tasks_from: remove_workload_multi_user
-  vars:
-    ocp4_workload_litellm_virtual_keys_user_count: "{{ ocp4_workload_opencode_mcp_num_users }}"
-    ocp4_workload_litellm_virtual_keys_user_base: "{{ ocp4_workload_opencode_mcp_user_base }}"
-
+# Everything in the cluster goes away with the cluster. Nothing here is kept
+# outside the cluster: the per-user LLM keys belong to the caller (a
+# MaaSSandbox allocation), which revokes them on release.
+#
 # Leave this as the last task in the playbook.
 - name: Remove workload tasks complete
   when: not silent|bool

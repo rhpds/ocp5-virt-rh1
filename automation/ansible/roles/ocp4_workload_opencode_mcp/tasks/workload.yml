@@ -20,42 +20,6 @@
   retries: "{{ ocp4_workload_opencode_mcp_build_retries | int }}"
   delay: 10
 
-# tasks_from skips the role's main.yml, which picks single- or multi-user mode
-# from ocp4_workload_litellm_virtual_keys_multi_user. The lab keeps that false
-# for the shared Lightspeed key.
-- name: Create a LiteLLM virtual key for each user
-  when: ocp4_workload_opencode_mcp_llm_per_user_keys | bool
-  ansible.builtin.include_role:
-    name: rhpds.litellm_virtual_keys.ocp4_workload_litellm_virtual_keys
-    tasks_from: workload_multi_user
-  vars:
-    ocp4_workload_litellm_virtual_keys_user_count: "{{ ocp4_workload_opencode_mcp_num_users }}"
-    ocp4_workload_litellm_virtual_keys_user_base: "{{ ocp4_workload_opencode_mcp_user_base }}"
-    ocp4_workload_litellm_virtual_keys_models:
-    - "{{ ocp4_workload_opencode_mcp_llm_model }}"
-    # Don't overwrite the lab-wide litellm_* user data that describes the shared key
-    ocp4_workload_litellm_virtual_keys_enable_user_info_data: false
-    ocp4_workload_litellm_virtual_keys_enable_user_info_messages: false
-
-- name: Map each user to their LiteLLM virtual key
-  when: ocp4_workload_opencode_mcp_llm_per_user_keys | bool
-  ansible.builtin.set_fact:
-    _ocp4_workload_opencode_mcp_llm_user_keys: "{{ dict(_litellm_key_aliases | zip(_litellm_virtual_keys)) }}"
-
-# LiteLLM skips keys that already exist without returning them (e.g. on a re-run)
-- name: Fail when a user did not get a LiteLLM virtual key
-  when: ocp4_workload_opencode_mcp_llm_per_user_keys | bool
-  ansible.builtin.assert:
-    that: _missing_aliases | length == 0
-    fail_msg: "No LiteLLM virtual key was returned for: {{ _missing_aliases | join(', ') }}"
-    quiet: true
-  vars:
-    _missing_aliases: >-
-      {{ range(1, ocp4_workload_opencode_mcp_num_users | int + 1)
-         | map('regex_replace', '^', 'virtkey-' ~ guid ~ '-' ~ ocp4_workload_opencode_mcp_user_base)
-         | reject('in', _ocp4_workload_opencode_mcp_llm_user_keys)
-         | list }}
-
 - name: Deploy an mcp-cli pod for each user
   kubernetes.core.k8s:
     state: present

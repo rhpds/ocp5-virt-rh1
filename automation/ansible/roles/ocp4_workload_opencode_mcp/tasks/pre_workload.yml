@@ -18,10 +18,16 @@
       when ocp4_workload_opencode_mcp_llm_per_user_keys is false.
     quiet: true
 
-- name: Check the prerequisites for per-user LLM keys
+- name: Fail when the per-user LLM keys are not configured
   when: ocp4_workload_opencode_mcp_llm_per_user_keys | bool
-  ansible.builtin.include_tasks:
-    file: ./check_litellm_collection.yml
+  ansible.builtin.assert:
+    that:
+    - ocp4_workload_opencode_mcp_llm_user_keys | length >= ocp4_workload_opencode_mcp_num_users | int
+    fail_msg: >-
+      ocp4_workload_opencode_mcp_llm_user_keys must hold one key per user
+      ({{ ocp4_workload_opencode_mcp_num_users }}) when
+      ocp4_workload_opencode_mcp_llm_per_user_keys is true.
+    quiet: true
 
 # Leave this as the last task in the playbook.
 - name: Pre_workload tasks complete

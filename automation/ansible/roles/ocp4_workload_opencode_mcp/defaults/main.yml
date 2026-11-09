@@ -51,11 +51,14 @@ ocp4_workload_opencode_mcp_llm_api_url: ""
 ocp4_workload_opencode_mcp_llm_api_key: ""
 ocp4_workload_opencode_mcp_llm_model: ""
 
-# Give each user their own LiteLLM virtual key (virtkey-<guid>-userN) instead of
-# ocp4_workload_opencode_mcp_llm_api_key. The keys are created with the
-# multi-user tasks of rhpds.litellm_virtual_keys, so litellm_url and
-# litellm_master_key must be set. Lightspeed keeps using the lab's shared key.
+# Give each user their own LLM key instead of
+# ocp4_workload_opencode_mcp_llm_api_key. The keys are supplied by the caller,
+# in user order (user1 first). With agnosticv these are the extra keys of a
+# MaaSSandbox allocation, so the sandbox mints and revokes them:
+#   ocp4_workload_opencode_mcp_llm_user_keys: >-
+#     {{ maas_sandbox.credentials[1:] | map(attribute='virtual_key') | list }}
 ocp4_workload_opencode_mcp_llm_per_user_keys: false
+ocp4_workload_opencode_mcp_llm_user_keys: []
 
 # Per-user mcp-cli pod. It idles in `sleep` until the user runs opencode, so
 # requests stay small (20 users = 0.4 CPU / 2.5Gi) and the limits let it burst.

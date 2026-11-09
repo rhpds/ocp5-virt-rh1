@@ -22,8 +22,9 @@ If opencode does not start (an earlier session is still running in the pod), del
 oc delete pod -n mcp-cli-$(oc whoami) -l app=mcp-cli
 ----
 
-Removal only deletes state kept outside the cluster (the per-user LiteLLM keys); the cluster resources go
-away with the cluster.
+Removal removes state kept outside the cluster. With a MaaSSandbox allocation the per-user keys are
+minted and revoked by the sandbox, so this role has nothing to remove on destroy; the cluster resources
+go away with the cluster.
 
 == The defaults variable file
 
@@ -31,9 +32,8 @@ away with the cluster.
 * `ocp4_workload_opencode_mcp_llm_api_url` (with `/v1`) and `ocp4_workload_opencode_mcp_llm_model` are mandatory.
 * LLM key, one of:
 ** `ocp4_workload_opencode_mcp_llm_api_key`: one key shared by all users.
-** `ocp4_workload_opencode_mcp_llm_per_user_keys: true`: each user gets their own LiteLLM virtual key
-   (`virtkey-<guid>-userN`), created with the multi-user tasks of `rhpds.litellm_virtual_keys`.
-   Needs `litellm_url`, `litellm_master_key` and the `rhpds.litellm_virtual_keys` collection in the
-   catalog item's `requirements_content` (not a `galaxy.yml` dependency, so the catalog item owns its version).
-   Add this role to `remove_workloads` so the keys are deleted on destroy.
+** `ocp4_workload_opencode_mcp_llm_per_user_keys: true`: each user gets their own key, supplied in
+   `ocp4_workload_opencode_mcp_llm_user_keys` in user order (`user1` first). With agnosticv, pass the
+   extra keys of a MaaSSandbox allocation:
+   `{{ maas_sandbox.credentials[1:] | map(attribute='virtual_key') | list }}`.
 * A variable silent=True can be passed to suppress debug messages.
