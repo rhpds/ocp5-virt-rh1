@@ -113,10 +113,10 @@ Your login is available with:
 This edition of the OpenShift Virtualization Roadshow has been developed using the following software versions:
 
 * Red Hat OpenShift 5.0
-* Red Hat OpenShift Virtualization 5.0.0-117
-* Red Hat OpenShift Data Foundation 4.22.5
-* Red Hat OpenShift API for Data Protection (OADP) 1.6.1
+* Red Hat OpenShift Virtualization 5.0.0
+* Red Hat OpenShift Data Foundation 4.22.7
+* Red Hat OpenShift API for Data Protection (OADP) 1.6.2
 * Red Hat OpenShift Lightspeed 2.0
-* Red Hat Migration Toolkit for Virtual Machines 2.12.9
+* Red Hat Migration Toolkit for Virtual Machines 2.12.10
 
-(Accurate as of November 3, 2026)
+(Accurate as of November 5, 2026)

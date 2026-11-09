@@ -2,7 +2,7 @@
 
 image::ocp5/conclusion/00_Thank_You.png[link=self, window=blank, width=100%]
 
-We hope you have enjoyed {lab_name} and learning more about *OpenShift Virtualization* and how it can be a useful tool for both the import and management of legacy virtual machines, as well as a stepping stone on the path of application modernization.
+We hope you have enjoyed the *OpenShift Virtualization Roadshow 5!* where we learned more about *OpenShift Virtualization* and how it can be a useful tool for both the import and management of legacy virtual machines, as well as a stepping stone on the path of application modernization.
 
 [key_takeaways]
 == Key Takeaways
@@ -41,7 +41,7 @@ image::ocp5/conclusion/01_Ebook.png[link=self, window=blank, width=50%]
 
 Click http://red.ht/virt_interact[here^] or scan the QR code below to learn more: 
 
-image::ocp5/conclusion/02_Interactive_demos.png[link=self, window=blank, width=50%]
+image::ocp5/conclusion/02_Interactive_Demos.png[link=self, window=blank, width=50%]
 
 
 === Red Hat Learning Services: DO317 Managing Virtual Machines with Red Hat OpenShift Virtualization
@@ -54,7 +54,7 @@ image::ocp5/conclusion/02_Interactive_demos.png[link=self, window=blank, width=5
 
 Click the link https://www.redhat.com/en/services/training/managing-virtual-machines-red-hat-openshift-virtualization-exam[here^] or scan the QR code below to learn more:
 
-image::ocp5/conclusion/02_DO317_Training.png[link=self, window=blank, width=50%]
+image::ocp5/conclusion/03_DO317_Training.png[link=self, window=blank, width=50%]
 
 
 === Plan a VM Migration with the Red Hat OpenShift Migration Advisor
