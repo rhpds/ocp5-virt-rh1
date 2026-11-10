@@ -1,0 +1,10 @@
+---
+# Everything in the cluster goes away with the cluster. Nothing here is kept
+# outside the cluster: the per-user LLM keys belong to the caller (a
+# MaaSSandbox allocation), which revokes them on release.
+#
+# Leave this as the last task in the playbook.
+- name: Remove workload tasks complete
+  when: not silent|bool
+  ansible.builtin.debug:
+    msg: "Remove Workload tasks completed successfully."

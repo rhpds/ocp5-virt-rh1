@@ -1,0 +1,39 @@
+= ocp4_workload_opencode_mcp - OpenShift MCP server and opencode for lab users
+
+== Role overview
+
+Brings the opencode capability from `ocp5-first-look-lab` to a multi-user cluster:
+
+* One OpenShift MCP server (`openshift-mcp`, Service only) in `passthrough` auth mode, so every call
+  runs with the bearer token the client sends.
+* One in-cluster build of the `mcp-cli` image (UBI nodejs + `oc` + `opencode-ai`) in `mcp-cli`.
+* One `mcp-cli` pod per user in `mcp-cli-userN`. `userN` can only exec into, read and delete pods there.
+  opencode is configured with the lab LLM and with the MCP server as `openshift`.
+
+An attendee logged in as `userN` starts opencode with:
+
+----
+oc exec -it -n mcp-cli-$(oc whoami) deploy/mcp-cli -- env OPENSHIFT_MCP_TOKEN=$(oc whoami -t) opencode
+----
+
+If opencode does not start (an earlier session is still running in the pod), delete the pod and run the command again:
+
+----
+oc delete pod -n mcp-cli-$(oc whoami) -l app=mcp-cli
+----
+
+Removal removes state kept outside the cluster. With a MaaSSandbox allocation the per-user keys are
+minted and revoked by the sandbox, so this role has nothing to remove on destroy; the cluster resources
+go away with the cluster.
+
+== The defaults variable file
+
+* `./defaults/main.yml` contains all the variables that control the deployment.
+* `ocp4_workload_opencode_mcp_llm_api_url` (with `/v1`) and `ocp4_workload_opencode_mcp_llm_model` are mandatory.
+* LLM key, one of:
+** `ocp4_workload_opencode_mcp_llm_api_key`: one key shared by all users.
+** `ocp4_workload_opencode_mcp_llm_per_user_keys: true`: each user gets their own key, supplied in
+   `ocp4_workload_opencode_mcp_llm_user_keys` in user order (`user1` first). With agnosticv, pass the
+   extra keys of a MaaSSandbox allocation:
+   `{{ maas_sandbox.credentials[1:] | map(attribute='virtual_key') | list }}`.
+* A variable silent=True can be passed to suppress debug messages.

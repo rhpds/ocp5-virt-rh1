@@ -1,0 +1,36 @@
+---
+- name: Fail when the LLM endpoint for opencode is not configured
+  ansible.builtin.assert:
+    that:
+    - ocp4_workload_opencode_mcp_llm_api_url | length > 0
+    - ocp4_workload_opencode_mcp_llm_model | length > 0
+    fail_msg: >-
+      ocp4_workload_opencode_mcp_llm_api_url and ocp4_workload_opencode_mcp_llm_model must be set.
+    quiet: true
+
+- name: Fail when the shared LLM key is not configured
+  when: not ocp4_workload_opencode_mcp_llm_per_user_keys | bool
+  ansible.builtin.assert:
+    that:
+    - ocp4_workload_opencode_mcp_llm_api_key | length > 0
+    fail_msg: >-
+      ocp4_workload_opencode_mcp_llm_api_key must be set
+      when ocp4_workload_opencode_mcp_llm_per_user_keys is false.
+    quiet: true
+
+- name: Fail when the per-user LLM keys are not configured
+  when: ocp4_workload_opencode_mcp_llm_per_user_keys | bool
+  ansible.builtin.assert:
+    that:
+    - ocp4_workload_opencode_mcp_llm_user_keys | length >= ocp4_workload_opencode_mcp_num_users | int
+    fail_msg: >-
+      ocp4_workload_opencode_mcp_llm_user_keys must hold one key per user
+      ({{ ocp4_workload_opencode_mcp_num_users }}) when
+      ocp4_workload_opencode_mcp_llm_per_user_keys is true.
+    quiet: true
+
+# Leave this as the last task in the playbook.
+- name: Pre_workload tasks complete
+  when: not silent|bool
+  ansible.builtin.debug:
+    msg: "Pre-Workload tasks completed successfully."

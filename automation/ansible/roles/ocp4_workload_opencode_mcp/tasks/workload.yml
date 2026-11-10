@@ -1,0 +1,43 @@
+---
+- name: Deploy the OpenShift MCP server
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('template', 'mcp_server.yaml.j2') }}"
+
+- name: Build the mcp-cli image
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('template', 'mcp_cli_build.yaml.j2') }}"
+
+- name: Wait for the mcp-cli image build to finish
+  kubernetes.core.k8s_info:
+    api_version: image.openshift.io/v1
+    kind: ImageStreamTag
+    name: mcp-cli:latest
+    namespace: "{{ ocp4_workload_opencode_mcp_build_namespace }}"
+  register: r_mcp_cli_tag
+  until: r_mcp_cli_tag.resources | default([]) | length > 0
+  retries: "{{ ocp4_workload_opencode_mcp_build_retries | int }}"
+  delay: 10
+
+- name: Deploy an mcp-cli pod for each user
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('template', 'mcp_cli_user.yaml.j2') }}"
+
+- name: Wait for the OpenShift MCP server to be available
+  kubernetes.core.k8s_info:
+    api_version: apps/v1
+    kind: Deployment
+    name: "{{ ocp4_workload_opencode_mcp_server_name }}"
+    namespace: "{{ ocp4_workload_opencode_mcp_server_namespace }}"
+  register: r_mcp_server
+  until: r_mcp_server.resources[0].status.availableReplicas | default(0) | int > 0
+  retries: 30
+  delay: 10
+
+# Leave this as the last task in the playbook.
+- name: Workload tasks complete
+  when: not silent|bool
+  ansible.builtin.debug:
+    msg: "Workload Tasks completed successfully."
