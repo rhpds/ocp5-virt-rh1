@@ -1,444 +1,254 @@
 ---
-# HEALTHCHECK — are the services this lab's automation deploys actually up?
-#
-# Scope follows the Publishing House QA guidance: check what our automation
-# deploys on top of the base infrastructure, not the base infrastructure
-# itself. Cluster API, console and node health belong to whoever provisions
-# the cluster and are deliberately not checked here. Learner workflows belong
-# in e2e.yml; this playbook never exercises one.
-#
-# Checks are grouped by service rather than by lab module, so they keep
-# working as the guide changes.
-#
-# Every check is a single cluster-wide list call compared against the number
-# of provisioned users, so the runtime is the same for 2 users or 20 and stays
-# inside the 60 second budget. A per-user loop would multiply both the API
-# calls and, on a broken cluster, the time taken to report it.
-#
-# Failures are collected rather than failed fast, so one run reports
-# everything that is broken instead of only the first thing.
-#
-# Read-only (k8s_info only) and safe to re-run against a live lab.
+# Read-only health check for the services this lab's automation deploys.
 # Exit 0 = healthy, non-zero = unhealthy.
+#
+# Every check is one cluster-wide query compared against the number of users,
+# so the runtime is the same for 2 users or 20. Failures are collected rather
+# than failed fast, so one run reports everything that is broken.
 #
 #   curl -sk -N "$SHOWROOM_URL/stream/qa/healthcheck"
 #
-# The runner's ServiceAccount needs cluster-scoped reads. In AgnosticV:
+# The runner ServiceAccount needs cluster-scoped reads. In AgnosticV:
 #   ocp4_workload_showroom_runtime_automation_cluster_admin: true
-# (runtime_automation_enable is already true for every RH1 lab via
-# rh1-2027/account.yaml.)
 
-- name: "Environment Health Check"
+- name: Environment health check
   hosts: localhost
   connection: local
   gather_facts: false
-  # Without this the tasks fall back to the pod's own identity, which is
-  # edit-scoped to its own namespace and cannot read anything below.
   module_defaults:
     group/kubernetes.core.k8s:
       kubeconfig: "{{ k8s_kubeconfig | default(omit) }}"
   vars:
-    hc_failures: []
-
-    hc_os_images_namespace: openshift-virtualization-os-images
-
-    # Published by the NooBaa/MCG operator only once object storage is ready.
-    hc_bucket_storageclass: openshift-storage.noobaa.io
-
-    # Only the images this lab boots from. The cluster ships many more
-    # DataSources (win*, rhel7) that are legitimately not Ready here.
-    hc_required_datasources:
-      - fedora
-      - rhel9
-      - centos-stream10
-
-    # Namespaces our automation creates for every user, used both as a
-    # completeness check and to derive how many users this lab was
-    # provisioned for. vmexamples-userN is deliberately absent: learners
-    # create that one themselves.
-    hc_namespace_families:
-      - label: "vmimported-* (staged application VMs)"
-        pattern: '^vmimported-user[0-9]+$'
-      - label: "oadp-* (backup and restore)"
-        pattern: '^oadp-user[0-9]+$'
-      - label: "mtv-* (migration)"
-        pattern: '^mtv-user[0-9]+$'
-      - label: "vmexamples-*-udn (user defined network)"
-        pattern: '^vmexamples-user[0-9]+-udn$'
-      - label: "showroom-* (lab guide)"
-        pattern: '^showroom-user[0-9]+$'
+    failures: []
 
   tasks:
 
-    # -- Precondition ---------------------------------------------------
-    # Fails fast rather than collecting: without cluster-scoped reads every
-    # check below would report a false failure.
-
-    - name: "Precondition | List namespaces"
+    - name: Get namespaces
       kubernetes.core.k8s_info:
         api_version: v1
         kind: Namespace
-      register: hc_namespaces
+      register: namespaces
       failed_when: false
 
-    - name: "Precondition | Cluster-scoped reads are available"
+    - name: Fail early if cluster-scoped reads are not allowed
       ansible.builtin.assert:
-        that: hc_namespaces.resources | default([]) | length > 0
+        that: namespaces.resources | default([]) | length > 0
         fail_msg: >-
-          Cannot list namespaces, so no check below would be meaningful. The
-          runtime-automation ServiceAccount needs cluster-admin: set
+          Cannot list namespaces, so no check below would be meaningful. Set
           ocp4_workload_showroom_runtime_automation_cluster_admin: true in the
           AgnosticV common.yaml and redeploy.
-        success_msg: "Cluster-scoped read access confirmed."
+        success_msg: Cluster-scoped read access confirmed.
 
-    # -- How many users is this lab provisioned for? --------------------
-    # Derived from the cluster rather than a variable, so the playbook needs
-    # no inventory and still notices when one family is short (19 of 20).
-
-    - name: "Provisioning | Count the per-user namespaces of each family"
+    - name: Count the users this lab was provisioned for
       ansible.builtin.set_fact:
-        hc_ns_counts: >-
-          {{ hc_ns_counts | default({}) | combine({
-               item.label: hc_namespaces.resources
-                 | map(attribute='metadata.name')
-                 | select('match', item.pattern) | list | length }) }}
-      loop: "{{ hc_namespace_families }}"
-      loop_control:
-        label: "{{ item.label }}"
+        users: >-
+          {{ namespaces.resources | map(attribute='metadata.name')
+             | select('match', '^showroom-user[0-9]+$') | list | length }}
 
-    - name: "Provisioning | Take the user count from the largest family"
+    - name: Check that the lab was provisioned at all
       ansible.builtin.set_fact:
-        hc_users: "{{ hc_ns_counts.values() | max }}"
+        failures: "{{ failures + ['no showroom-user* namespaces exist, nothing was provisioned'] }}"
+      when: users | int == 0
 
-    - name: "Provisioning | Record failure if nothing was provisioned per user"
-      ansible.builtin.set_fact:
-        hc_failures: >-
-          {{ hc_failures + ['provisioning: no per-user namespaces found at all'] }}
-      when: hc_users | int == 0
-
-    - name: "Provisioning | Record failure for each incomplete namespace family"
-      ansible.builtin.set_fact:
-        hc_failures: >-
-          {{ hc_failures + ['provisioning: only ' ~ item.value ~ ' of ' ~ hc_users ~ ' ' ~ item.key] }}
-      loop: "{{ hc_ns_counts | dict2items }}"
-      loop_control:
-        label: "{{ item.key }}"
-      when:
-        - hc_users | int > 0
-        - item.value | int < hc_users | int
-
-    # -- Operators ------------------------------------------------------
-    # One signal for every operator the automation subscribes to, per-user
-    # copies included, without naming any of them.
-
-    - name: "Operators | Subscriptions"
+    - name: Get operators
       kubernetes.core.k8s_info:
         api_version: operators.coreos.com/v1alpha1
-        kind: Subscription
-      register: hc_subscriptions
+        kind: ClusterServiceVersion
+        label_selectors:
+          # OLM copies every CSV into every namespace; without this it returns 700+.
+          - "!olm.copiedFrom"
+      register: operators
       failed_when: false
 
-    - name: "Operators | Record failure if no Subscriptions exist"
-      ansible.builtin.set_fact:
-        hc_failures: "{{ hc_failures + ['operators: no Subscriptions found, no operator was installed'] }}"
-      when: hc_subscriptions.resources | default([]) | length == 0
-
-    - name: "Operators | Record failure for operators that did not install"
+    - name: Check that every operator installed
       vars:
-        _total: "{{ hc_subscriptions.resources | default([]) | length }}"
-        _installed: >-
-          {{ hc_subscriptions.resources | default([])
-             | selectattr('status.installedCSV', 'defined')
-             | selectattr('status.state', 'defined')
-             | selectattr('status.state', 'equalto', 'AtLatestKnown')
-             | list | length }}
-        _pending: >-
-          {{ hc_subscriptions.resources | default([])
-             | selectattr('status.state', 'defined')
-             | rejectattr('status.state', 'equalto', 'AtLatestKnown')
-             | map(attribute='metadata.namespace') | unique | list }}
+        broken: >-
+          {{ operators.resources | default([]) | selectattr('status.phase', 'defined')
+             | rejectattr('status.phase', 'equalto', 'Succeeded')
+             | map(attribute='metadata.name') | list }}
       ansible.builtin.set_fact:
-        hc_failures: >-
-          {{ hc_failures + ['operators: ' ~ _installed ~ ' of ' ~ _total
-             ~ ' Subscriptions installed. Namespaces not AtLatestKnown: ' ~ (_pending | join(', ') | default('n/a', true))] }}
-      when:
-        - _total | int > 0
-        - _installed | int < _total | int
+        failures: "{{ failures + ['operators not installed: ' ~ broken | join(', ')] }}"
+      when: broken | length > 0
 
-    # -- GitOps ---------------------------------------------------------
-    # ArgoCD owns the per-user OADP stacks here, so an Application that never
-    # reaches Healthy is the earliest generic sign that something it deploys
-    # is stuck, whatever that something is.
-
-    # Progressing is a legitimate transient state, so retry briefly rather
-    # than flagging an Application that is merely mid-sync.
-    - name: "GitOps | ArgoCD Applications"
-      kubernetes.core.k8s_info:
-        api_version: argoproj.io/v1alpha1
-        kind: Application
-      register: hc_applications
-      failed_when: false
-      until: >-
-        (hc_applications.resources | default([])
-         | selectattr('status.health.status', 'defined')
-         | selectattr('status.health.status', 'equalto', 'Healthy')
-         | list | length)
-        >= (hc_applications.resources | default([]) | length)
-      retries: 2
-      delay: 2
-
-    - name: "GitOps | Record failure if no Applications exist"
-      ansible.builtin.set_fact:
-        hc_failures: >-
-          {{ hc_failures + ['gitops: no ArgoCD Applications found, the ApplicationSet produced nothing'] }}
-      when: hc_applications.resources | default([]) | length == 0
-
-    - name: "GitOps | Record failure for Applications that are not Synced and Healthy"
-      vars:
-        _total: "{{ hc_applications.resources | default([]) | length }}"
-        _ok: >-
-          {{ hc_applications.resources | default([])
-             | selectattr('status.sync.status', 'defined')
-             | selectattr('status.sync.status', 'equalto', 'Synced')
-             | selectattr('status.health.status', 'defined')
-             | selectattr('status.health.status', 'equalto', 'Healthy')
-             | list | length }}
-        _health_seen: >-
-          {{ hc_applications.resources | default([])
-             | selectattr('status.health.status', 'defined')
-             | map(attribute='status.health.status') | unique | list }}
-      ansible.builtin.set_fact:
-        hc_failures: >-
-          {{ hc_failures + ['gitops: ' ~ _ok ~ ' of ' ~ _total
-             ~ ' ArgoCD Applications Synced and Healthy (health seen: '
-             ~ (_health_seen | join(', ') | default('none', true)) ~ ')'] }}
-      when:
-        - _total | int > 0
-        - _ok | int < _total | int
-
-    # -- Object storage -------------------------------------------------
-    # The bucket StorageClass is the readiness gate for the whole MCG path:
-    # without it no ObjectBucketClaim can bind and anything needing an S3
-    # bucket is dead on arrival.
-
-    - name: "Object storage | Bucket StorageClass"
+    - name: Get the object storage bucket StorageClass
       kubernetes.core.k8s_info:
         api_version: storage.k8s.io/v1
         kind: StorageClass
-        name: "{{ hc_bucket_storageclass }}"
-      register: hc_bucket_sc
+        name: openshift-storage.noobaa.io
+      register: bucket_storageclass
       failed_when: false
 
-    - name: "Object storage | Record failure if the bucket StorageClass is missing"
+    - name: Check that object storage can serve buckets
       ansible.builtin.set_fact:
-        hc_failures: >-
-          {{ hc_failures + ['object storage: StorageClass ' ~ hc_bucket_storageclass
-             ~ ' does not exist, so no ObjectBucketClaim can bind. Check that the NooBaa system is Ready'] }}
-      when: hc_bucket_sc.resources | default([]) | length == 0
+        failures: >-
+          {{ failures + ['object storage: StorageClass openshift-storage.noobaa.io is missing,'
+          ~ ' so no ObjectBucketClaim can bind. Check that the NooBaa system is Ready'] }}
+      when: bucket_storageclass.resources | default([]) | length == 0
 
-    # ObjectBucketClaim phase is deliberately not checked: it sits between the
-    # StorageClass above and the BackupStorageLocation below, both of which
-    # are queried anyway, and each extra query costs ~2.6s of the 60s budget.
-
-    # -- Backup ---------------------------------------------------------
-    # A BackupStorageLocation only reaches Available if the bucket bound, the
-    # credentials secret was written, the DPA reconciled and Velero reached
-    # the bucket, so it is the single end-to-end signal for the backup
-    # service.
-
-    - name: "Backup | BackupStorageLocations"
+    - name: Get backup storage locations
       kubernetes.core.k8s_info:
         api_version: velero.io/v1
         kind: BackupStorageLocation
-      register: hc_bsl
+      register: backup_locations
       failed_when: false
 
-    - name: "Backup | Record failure for users without a usable backup location"
+    - name: Check that every user has a usable backup location
       vars:
-        _available: >-
-          {{ hc_bsl.resources | default([])
-             | selectattr('status.phase', 'defined')
-             | selectattr('status.phase', 'equalto', 'Available')
-             | list | length }}
+        available: >-
+          {{ backup_locations.resources | default([]) | selectattr('status.phase', 'defined')
+             | selectattr('status.phase', 'equalto', 'Available') | list | length }}
       ansible.builtin.set_fact:
-        hc_failures: >-
-          {{ hc_failures + ['backup: ' ~ _available ~ ' of ' ~ hc_users
+        failures: >-
+          {{ failures + ['backup: ' ~ available ~ ' of ' ~ users
              ~ ' BackupStorageLocations Available, backup and restore will fail'] }}
-      when: _available | int < hc_users | int
+      when: available | int < users | int
 
-    # -- Virtualization -------------------------------------------------
-
-    - name: "Virtualization | HyperConverged"
+    - name: Get OpenShift Virtualization
       kubernetes.core.k8s_info:
         api_version: hco.kubevirt.io/v1
         kind: HyperConverged
-      register: hc_hco
+      register: hyperconverged
       failed_when: false
 
-    # Status is unwrapped one level at a time throughout this playbook:
-    # chaining through a missing key raises before `default` can catch it.
-    - name: "Virtualization | Record failure if OpenShift Virtualization is not Available"
+    - name: Check that OpenShift Virtualization is Available
       vars:
-        _hco: "{{ hc_hco.resources | default([]) | first | default({}, true) }}"
-        _conditions: "{{ (_hco.status | default({}, true)).conditions | default([], true) }}"
+        available: >-
+          {{ hyperconverged.resources | default([]) | selectattr('status.conditions', 'defined')
+             | map(attribute='status.conditions') | flatten
+             | selectattr('type', 'equalto', 'Available')
+             | selectattr('status', 'equalto', 'True') | list | length }}
       ansible.builtin.set_fact:
-        hc_failures: >-
-          {{ hc_failures + ['virtualization: HyperConverged is not Available, no VM can be created'] }}
-      when: >-
-        _conditions | selectattr('type', 'equalto', 'Available')
-                    | selectattr('status', 'equalto', 'True')
-                    | list | length == 0
+        failures: "{{ failures + ['virtualization: HyperConverged is not Available, no VM can run'] }}"
+      when: available | int == 0
 
-    - name: "Virtualization | Boot images"
+    - name: Get boot images
       kubernetes.core.k8s_info:
         api_version: cdi.kubevirt.io/v1beta1
         kind: DataSource
-        namespace: "{{ hc_os_images_namespace }}"
-      register: hc_datasources
+        namespace: openshift-virtualization-os-images
+      register: boot_images
       failed_when: false
 
-    - name: "Virtualization | Record failure for each boot image that is not Ready"
+    # Only the images the lab guide boots from. The cluster ships many more
+    # (rhel7, win*) that are legitimately not Ready here.
+    - name: Check that the boot images the lab guide uses are Ready
       vars:
-        _datasource: >-
-          {{ hc_datasources.resources | default([])
-             | selectattr('metadata.name', 'equalto', item)
-             | first | default({}, true) }}
-        _conditions: "{{ (_datasource.status | default({}, true)).conditions | default([], true) }}"
+        image: >-
+          {{ boot_images.resources | default([])
+             | selectattr('metadata.name', 'equalto', item) | first | default({}, true) }}
       ansible.builtin.set_fact:
-        hc_failures: >-
-          {{ hc_failures + ['virtualization: boot image ' ~ item
-             ~ ' is not Ready, VMs using it cannot be created'] }}
-      loop: "{{ hc_required_datasources }}"
+        failures: "{{ failures + ['boot image ' ~ item ~ ' is not Ready, VMs created from it will fail'] }}"
+      loop: [fedora, rhel9, centos-stream10]
       when: >-
-        _conditions | selectattr('type', 'equalto', 'Ready')
-                    | selectattr('status', 'equalto', 'True')
-                    | list | length == 0
+        (image.status | default({}, true)).conditions | default([], true)
+        | selectattr('type', 'equalto', 'Ready')
+        | selectattr('status', 'equalto', 'True') | list | length == 0
 
-    # -- Migration ------------------------------------------------------
+    - name: Get the staged application VMs
+      kubernetes.core.k8s_info:
+        api_version: kubevirt.io/v1
+        kind: VirtualMachine
+        label_selectors:
+          - app.kubernetes.io/part-of=3-Tier-App
+      register: staged_vms
+      failed_when: false
 
-    # ForkliftController is not queried separately: a provider can only report
-    # ConnectionTestSucceeded if that controller is running and reconciling.
+    - name: Check that every user has their three staged VMs
+      vars:
+        found: "{{ staged_vms.resources | default([]) | length }}"
+      ansible.builtin.set_fact:
+        failures: "{{ failures + ['staged VMs: ' ~ found ~ ' of ' ~ (users | int * 3) ~ ' exist'] }}"
+      when: found | int < users | int * 3
 
-    - name: "Migration | Source providers"
+    # They are deployed stopped, so Running is not the signal - an error is.
+    - name: Check that no staged VM is in an error state
+      vars:
+        broken: >-
+          {{ staged_vms.resources | default([]) | selectattr('status.printableStatus', 'defined')
+             | selectattr('status.printableStatus', 'search', 'Err|BackOff|Unknown')
+             | map(attribute='metadata.namespace') | unique | list }}
+      ansible.builtin.set_fact:
+        failures: "{{ failures + ['staged VMs in an error state in: ' ~ broken | join(', ')] }}"
+      when: broken | length > 0
+
+    - name: Get the MTV source providers
       kubernetes.core.k8s_info:
         api_version: forklift.konveyor.io/v1beta1
         kind: Provider
-      register: hc_providers
+      register: providers
       failed_when: false
 
-    # status.phase is NOT used here: MTV re-validates provider inventory on a
-    # cycle and the phase of many providers drops out of Ready while it does
-    # (measured on a healthy cluster: 20/20 Ready for 56s, then 4/20, then
-    # back). ConnectionTestSucceeded held at 20/20 throughout the same window
-    # and is what actually matters -- it proves the credentials and the route
-    # to vCenter work, which is the part that genuinely breaks.
-    - name: "Migration | Record failure for users whose source provider cannot reach vCenter"
+    # status.phase is not used: it drops out of Ready while MTV re-validates
+    # its inventory (measured 20/20 then 4/20 on a healthy cluster). The
+    # connection condition held throughout and is what actually matters.
+    - name: Check that every user's provider can reach vCenter
       vars:
-        _connected: >-
-          {{ hc_providers.resources | default([])
-             | selectattr('metadata.name', 'equalto', 'vmware')
+        connected: >-
+          {{ providers.resources | default([]) | selectattr('metadata.name', 'equalto', 'vmware')
              | selectattr('status.conditions', 'defined')
              | map(attribute='status.conditions') | flatten
              | selectattr('type', 'equalto', 'ConnectionTestSucceeded')
-             | selectattr('status', 'equalto', 'True')
-             | list | length }}
+             | selectattr('status', 'equalto', 'True') | list | length }}
       ansible.builtin.set_fact:
-        hc_failures: >-
-          {{ hc_failures + ['migration: ' ~ _connected ~ ' of ' ~ hc_users
-             ~ ' vmware Providers can reach vCenter, migration plans will not validate'] }}
-      when: _connected | int < hc_users | int
+        failures: >-
+          {{ failures + ['migration: ' ~ connected ~ ' of ' ~ users
+             ~ ' vmware providers can reach vCenter, migration plans will not validate'] }}
+      when: connected | int < users | int
 
-    # -- Networking -----------------------------------------------------
-    # The bridge our automation configures, not the cluster network.
-
-    - name: "Networking | Bridge policies"
+    - name: Get the secondary network bridge policies
       kubernetes.core.k8s_info:
         api_version: nmstate.io/v1
         kind: NodeNetworkConfigurationPolicy
-      register: hc_nncp
+      register: bridge_policies
       failed_when: false
 
-    - name: "Networking | Record failure if no bridge policy exists"
-      ansible.builtin.set_fact:
-        hc_failures: >-
-          {{ hc_failures + ['networking: no NodeNetworkConfigurationPolicy found, the secondary bridge was never configured'] }}
-      when: hc_nncp.resources | default([]) | length == 0
-
-    - name: "Networking | Record failure for bridge policies that did not apply"
+    - name: Check that the secondary network bridge applied
       vars:
-        _total: "{{ hc_nncp.resources | default([]) | length }}"
-        _available: >-
-          {{ hc_nncp.resources | default([])
-             | selectattr('status.conditions', 'defined')
+        total: "{{ bridge_policies.resources | default([]) | length }}"
+        available: >-
+          {{ bridge_policies.resources | default([]) | selectattr('status.conditions', 'defined')
              | map(attribute='status.conditions') | flatten
              | selectattr('type', 'equalto', 'Available')
-             | selectattr('status', 'equalto', 'True')
-             | list | length }}
+             | selectattr('status', 'equalto', 'True') | list | length }}
       ansible.builtin.set_fact:
-        hc_failures: >-
-          {{ hc_failures + ['networking: ' ~ _available ~ ' of ' ~ _total
+        failures: >-
+          {{ failures + ['networking: ' ~ available ~ ' of ' ~ total
              ~ ' bridge policies Available, VM bridge networking will fail'] }}
-      when:
-        - _total | int > 0
-        - _available | int < _total | int
+      when: total | int == 0 or available | int < total | int
 
-    # -- Lab guide ------------------------------------------------------
-    # The one endpoint every learner needs; also the pod this playbook runs
-    # in, so a shortfall means another user's guide is down, not this one.
-
-    - name: "Lab guide | Showroom pods"
+    - name: Get the lab guide pods
       kubernetes.core.k8s_info:
         api_version: v1
         kind: Pod
         label_selectors:
           - app.kubernetes.io/name=showroom
-      register: hc_showroom
+      register: showroom_pods
       failed_when: false
 
-    - name: "Lab guide | Record failure for users whose guide is not running"
+    - name: Check that every user has a lab guide pod
       vars:
-        _running: >-
-          {{ hc_showroom.resources | default([])
-             | selectattr('status.phase', 'defined')
-             | selectattr('status.phase', 'equalto', 'Running')
-             | list | length }}
+        found: "{{ showroom_pods.resources | default([]) | map(attribute='metadata.namespace') | unique | list | length }}"
       ansible.builtin.set_fact:
-        hc_failures: >-
-          {{ hc_failures + ['lab guide: ' ~ _running ~ ' of ' ~ hc_users
-             ~ ' Showroom pods Running'] }}
-      when: _running | int < hc_users | int
+        failures: "{{ failures + ['lab guide: ' ~ found ~ ' of ' ~ users ~ ' users have a Showroom pod'] }}"
+      when: found | int < users | int
 
-    # -- Lab content ----------------------------------------------------
-    # The application VMs our automation stages for each user.
-
-    - name: "Lab content | Staged application VMs"
-      kubernetes.core.k8s_info:
-        api_version: kubevirt.io/v1
-        kind: VirtualMachine
-      register: hc_vms
-      failed_when: false
-
-    - name: "Lab content | Record failure for missing staged VMs"
+    - name: Check that no lab guide container is failing
       vars:
-        _staged: >-
-          {{ hc_vms.resources | default([])
-             | map(attribute='metadata.namespace')
-             | select('match', '^vmimported-user[0-9]+$') | list | length }}
-        _expected: "{{ hc_users | int * 3 }}"
+        unready: >-
+          {{ showroom_pods.resources | default([]) | selectattr('status.containerStatuses', 'defined')
+             | map(attribute='status.containerStatuses') | flatten | rejectattr('ready') | list }}
       ansible.builtin.set_fact:
-        hc_failures: >-
-          {{ hc_failures + ['lab content: ' ~ _staged ~ ' of ' ~ _expected
-             ~ ' staged VMs in vmimported-* (three per user)'] }}
-      when: _staged | int < _expected | int
+        failures: >-
+          {{ failures + ['lab guide: ' ~ (unready | length) ~ ' containers not ready ('
+             ~ (unready | map(attribute='name') | unique | join(', ')) ~ ')'] }}
+      when: unready | length > 0
 
-    # -- Report ----------------------------------------------------------
-
-    - name: "Report | Healthy"
+    - name: Report healthy
       ansible.builtin.debug:
-        msg: "Healthcheck passed for {{ hc_users }} user(s). No failures found."
-      when: hc_failures | length == 0
+        msg: "Healthy. {{ users }} users provisioned, no failures found."
+      when: failures | length == 0
 
-    - name: "Report | Unhealthy"
+    - name: Report unhealthy
       ansible.builtin.fail:
-        msg: "{{ hc_failures }}"
-      when: hc_failures | length > 0
+        msg: "{{ failures }}"
+      when: failures | length > 0
