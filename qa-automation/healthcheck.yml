@@ -34,9 +34,12 @@
       ansible.builtin.assert:
         that: namespaces.resources | default([]) | length > 0
         fail_msg: >-
-          Cannot list namespaces, so no check below would be meaningful. Set
-          ocp4_workload_showroom_runtime_automation_cluster_admin: true in the
-          AgnosticV common.yaml and redeploy.
+          Cannot list namespaces, so no check below would be meaningful. Either
+          the cluster is unreachable, or the runtime-automation ServiceAccount
+          has no cluster-scoped reads - that needs
+          ocp4_workload_showroom_runtime_automation_cluster_admin: true and
+          ocp4_workload_showroom_runtime_automation_cluster_role: cluster-reader
+          in the AgnosticV common.yaml.
         success_msg: Cluster-scoped read access confirmed.
 
     - name: Count the users this lab was provisioned for
@@ -45,7 +48,7 @@
           {{ namespaces.resources | map(attribute='metadata.name')
              | select('match', '^showroom-user[0-9]+$') | list | length }}
 
-    - name: Check that the lab was provisioned at all
+    - name: Fail when nothing was provisioned
       ansible.builtin.set_fact:
         failures: "{{ failures + ['no showroom-user* namespaces exist, nothing was provisioned'] }}"
       when: users | int == 0
@@ -60,7 +63,12 @@
       register: operators
       failed_when: false
 
-    - name: Check that every operator installed
+    - name: Fail when no operators were found
+      ansible.builtin.set_fact:
+        failures: "{{ failures + ['no ClusterServiceVersions returned, operators could not be checked'] }}"
+      when: operators.resources | default([]) | length == 0
+
+    - name: Fail when an operator did not install
       vars:
         broken: >-
           {{ operators.resources | default([]) | selectattr('status.phase', 'defined')
@@ -78,7 +86,7 @@
       register: bucket_storageclass
       failed_when: false
 
-    - name: Check that object storage can serve buckets
+    - name: Fail when object storage cannot serve buckets
       ansible.builtin.set_fact:
         failures: >-
           {{ failures + ['object storage: StorageClass openshift-storage.noobaa.io is missing,'
@@ -92,7 +100,7 @@
       register: backup_locations
       failed_when: false
 
-    - name: Check that every user has a usable backup location
+    - name: Fail when a user has no usable backup location
       vars:
         available: >-
           {{ backup_locations.resources | default([]) | selectattr('status.phase', 'defined')
@@ -110,7 +118,7 @@
       register: hyperconverged
       failed_when: false
 
-    - name: Check that OpenShift Virtualization is Available
+    - name: Fail when OpenShift Virtualization is not Available
       vars:
         available: >-
           {{ hyperconverged.resources | default([]) | selectattr('status.conditions', 'defined')
@@ -131,7 +139,7 @@
 
     # Only the images the lab guide boots from. The cluster ships many more
     # (rhel7, win*) that are legitimately not Ready here.
-    - name: Check that the boot images the lab guide uses are Ready
+    - name: Fail when a boot image the lab guide uses is not Ready
       vars:
         image: >-
           {{ boot_images.resources | default([])
@@ -153,7 +161,7 @@
       register: staged_vms
       failed_when: false
 
-    - name: Check that every user has their three staged VMs
+    - name: Fail when a user is missing staged VMs
       vars:
         found: "{{ staged_vms.resources | default([]) | length }}"
       ansible.builtin.set_fact:
@@ -161,7 +169,7 @@
       when: found | int < users | int * 3
 
     # They are deployed stopped, so Running is not the signal - an error is.
-    - name: Check that no staged VM is in an error state
+    - name: Fail when a staged VM is in an error state
       vars:
         broken: >-
           {{ staged_vms.resources | default([]) | selectattr('status.printableStatus', 'defined')
@@ -181,7 +189,7 @@
     # status.phase is not used: it drops out of Ready while MTV re-validates
     # its inventory (measured 20/20 then 4/20 on a healthy cluster). The
     # connection condition held throughout and is what actually matters.
-    - name: Check that every user's provider can reach vCenter
+    - name: Fail when a provider cannot reach vCenter
       vars:
         connected: >-
           {{ providers.resources | default([]) | selectattr('metadata.name', 'equalto', 'vmware')
@@ -202,7 +210,7 @@
       register: bridge_policies
       failed_when: false
 
-    - name: Check that the secondary network bridge applied
+    - name: Fail when the secondary network bridge did not apply
       vars:
         total: "{{ bridge_policies.resources | default([]) | length }}"
         available: >-
@@ -225,14 +233,14 @@
       register: showroom_pods
       failed_when: false
 
-    - name: Check that every user has a lab guide pod
+    - name: Fail when a user has no lab guide pod
       vars:
         found: "{{ showroom_pods.resources | default([]) | map(attribute='metadata.namespace') | unique | list | length }}"
       ansible.builtin.set_fact:
         failures: "{{ failures + ['lab guide: ' ~ found ~ ' of ' ~ users ~ ' users have a Showroom pod'] }}"
       when: found | int < users | int
 
-    - name: Check that no lab guide container is failing
+    - name: Fail when a lab guide container is not ready
       vars:
         unready: >-
           {{ showroom_pods.resources | default([]) | selectattr('status.containerStatuses', 'defined')
