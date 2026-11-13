@@ -81,6 +81,14 @@ ocp4_workload_oadp_gitops_storage: odf
 # ocp4_workload_oadp_gitops_storage_minio_name: minio
 # ocp4_workload_oadp_gitops_storage_minio_namespace: minio
 
+# StorageClass backing the ObjectBucketClaims when storage is "odf". The
+# NooBaa/MCG operator only publishes it once object storage is ready, so it
+# doubles as the readiness gate for the whole ODF bucket path.
+ocp4_workload_oadp_gitops_bucket_storageclass: openshift-storage.noobaa.io
+
+# Read only, to report why the bucket StorageClass is missing
+ocp4_workload_oadp_gitops_noobaa_namespace: openshift-storage
+
 # --------------------------------
 # Operator Catalog Snapshot Settings
 # --------------------------------

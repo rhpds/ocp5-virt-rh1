@@ -13,21 +13,50 @@
     success_msg: "OpenShift GitOps installation found."
     fail_msg: "OpenShift GitOps Operator must be installed and configured for OADP to be installed."
 
-- name: Ensure ObjectBucketClaim exists for ODF deployment
+# The objectbucketclaims CRD is installed by the ODF operator and exists even
+# when object storage cannot serve a single bucket, so it is not a usable gate.
+# The bucket StorageClass is: the NooBaa/MCG operator only publishes it once the
+# system is ready, and without it every OBC stays unbound, the credentials job
+# never completes, and each DPA is left with no BackupStorageLocation.
+- name: Ensure ODF object storage can serve buckets
   when: ocp4_workload_oadp_gitops_storage == "odf"
   block:
-  - name: Get ObjectBucketClaim custom resource for ODF deployment
+  - name: Wait for the ODF bucket StorageClass
     kubernetes.core.k8s_info:
-      api_version: apiextensions.k8s.io/v1
-      kind: CustomResourceDefinition
-      name: objectbucketclaims.objectbucket.io
-    register: r_objectbucketclaim
+      api_version: storage.k8s.io/v1
+      kind: StorageClass
+      name: "{{ ocp4_workload_oadp_gitops_bucket_storageclass }}"
+    register: r_bucket_storageclass
+    until: r_bucket_storageclass.resources | default([]) | length > 0
+    retries: 15
+    delay: 20
 
-  - name: Fail when no ObjectBucketClaim is found
-    ansible.builtin.assert:
-      that: r_objectbucketclaim.resources | default ([]) | length > 0
-      success_msg: "ObjectBucketClaim custom resource found."
-      fail_msg: "OpenShift Data Foundations must be installed and configured with ObjectBucketClaims for OADP to be installed with ODF."
+  rescue:
+  - name: Read the NooBaa system to report the underlying cause
+    kubernetes.core.k8s_info:
+      api_version: noobaa.io/v1alpha1
+      kind: NooBaa
+      namespace: "{{ ocp4_workload_oadp_gitops_noobaa_namespace }}"
+    register: r_noobaa
+    failed_when: false
+
+  # Resolved one level at a time: chaining through a missing key raises
+  # UndefinedError before `default` can catch it.
+  - name: Fail because object storage cannot serve buckets
+    vars:
+      _noobaa_status: >-
+        {{ (r_noobaa.resources | default([]) | first | default({}, true)).status
+           | default({}, true) }}
+    ansible.builtin.fail:
+      msg: >-
+        StorageClass {{ ocp4_workload_oadp_gitops_bucket_storageclass }} does not exist,
+        so ObjectBucketClaims can never bind and OADP would be installed without a
+        usable BackupStorageLocation.
+        NooBaa phase={{ _noobaa_status.phase | default('not found', true) }}:
+        {{ _noobaa_status.conditions | default([], true)
+           | selectattr('type', 'equalto', 'Available')
+           | map(attribute='message') | first
+           | default('no Available condition reported', true) }}
 
 - name: Install OADP (single user)
   when: not ocp4_workload_oadp_gitops_multi_user | bool
