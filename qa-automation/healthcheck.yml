@@ -258,5 +258,9 @@
 
     - name: Report unhealthy
       ansible.builtin.fail:
-        msg: "{{ failures }}"
+        msg: |
+          Health check failed with {{ failures | length }} issue(s):
+          {% for f in failures %}
+            - {{ f }}
+          {% endfor %}
       when: failures | length > 0
