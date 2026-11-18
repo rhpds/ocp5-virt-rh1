@@ -1,0 +1,231 @@
+= Module 08: Intelligent OpenShift with Virtualization
+
+include::vars.adoc[]
+
+== Introduction
+
+With the introduction of OpenShift 5, there are a number of new agentic AI enhanced features that make our ability to work with virtual machines much easier. Many end users have often been in the same virtualization ecosystem for more than a decade, and are having to learn whole new functionality when they adopt OpenShift Virtualization. While this lab is intended to demonstrate how many of the same feature expectations that they are comfortable with in their existing environments are still available to them in OpenShift Virtualization in very similar workflows, many will still have questions. The new agentic AI features available in OpenShift 5 can be used to ease some of the burden of adopting an entirely new platform, from deployments to troubleshooting virtual machines and applications.
+
+
+== Objectives
+
+* The attendee will use OpenShift Lightspeed to deploy a VM and install an application automatically.
+* The attendee will use OpenShift Ligthspeed to troubleshoot a broken VM.
+* The attendee will use an AI agent (OpenCode) to connect to the OpenShift MCP server, and deploy a VM.
+
+[[getting-started-lightspeed]]
+== Getting started with OpenShift Lightspeed
+
+You may recall that in the very first module of this lab we minimized the OpenShift Lightspeed menu when we got started. You can re-open its console by clicking on the icon in the bottom right corner of the screen.
+
+image::ocp5/module-08-intelligentocp/18-lightspeed-icon.png["OpenShift Lightspeed icon in the bottom right corner of the console", link=self,window=blank,width=100%]
+
+The lightspeed window will re-appear. And you can start by asking it basic informative questions about your cluster and the workloads running in it.
+
+Start by performing a copy/paste action on the following question, and click the `Send` button when ready.
+
+[source,shell,subs=attributes,role=execute]
+----
+How many virtual machines are running in the {modernize_ocp_virt_username}-vms project?
+----
+
+image::ocp5/module-08-intelligentocp/19-lightspeed-question-one.png["Lightspeed chat window with the question about running VMs pasted in", link=self,window=blank,width=100%]
+
+After a few moments, OpenShift Lightspeed should report that there is `1` VM running in that project, which is the one we quick created a moment ago.
+
+It can also tell you where it got this information from, and gives you the opportunity to rate its reply.
+
+image::ocp5/module-08-intelligentocp/20-lightspeed-answer-one.png["Lightspeed response confirming one VM is running in the project", link=self,window=blank,width=100%]
+
+Go ahead and give it a `thumbs up` if you are happy with the response, it will also give you the opportunity to provide additional feedback. Click the `Submit` button. This feedback can be used to help train the model for its responses in the future.
+
+image::ocp5/module-08-intelligentocp/21-lightspeed-thumbs-up.png["Lightspeed feedback dialog with thumbs up selected and Submit button", link=self,window=blank,width=100%]
+
+Now let us ask it a follow-up question, copy/paste the following question, and click the `Send` button when ready.
+
+[source,shell,subs=attributes,role=execute]
+----
+What operating system is that VM running?
+----
+
+image::ocp5/module-08-intelligentocp/22-lightspeed-question-two.png["Lightspeed chat with follow-up question about the VM operating system", link=self,window=blank,width=100%]
+
+After a few moments, OpenShift Lightspeed will correctly answer that the VM in question is a `RHEL9` VM.
+
+image::ocp5/module-08-intelligentocp/23-lightspeed-answer-two.png["Lightspeed response identifying the VM as running RHEL9", link=self,window=blank,width=100%]
+
+NOTE: Notice that OpenShift Lightspeed can continue a series of questions by inferring information from those previously asked. In this example, we did not have to restate the project, or tell it specifically which VM we were referring to in the second prompt.
+
+Feel free to play with OpenShift Lightspeed at your leisure, by asking it other questions. Note that some information about the overall cluster may not be available to your {modernize_ocp_virt_username} account and the permissions granted to it.
+
+When you are finished, click the `trash-bin` icon in the top right corner to clear the OpenShift Lightspeed prompt history.
+
+image::ocp5/module-08-intelligentocp/24-clear-lightspeed-history.png["Lightspeed window with the X icon to clear chat history highlighted", link=self,window=blank,width=100%]
+
+Click the `Erase and start new chat` button to be ready to move along to the next task in this module with a fresh conversation.
+
+image::ocp5/module-08-intelligentocp/25-erase-and-start-new-chat.png["Confirmation dialog with Erase and start new chat button", link=self,window=blank,width=100%]
+
+[[create-vm-lightspeed]]
+== Create a VM from an OpenShift Lightspeed prompt
+
+Quick creating a VM as we did earlier in this module is one thing; it shows customers that OpenShift Virtualization essentially "works", and it demonstrates that we can answer their most basic questions often concerning ease of use, or how the user experience differs from what they are used to from their current hypervisor.
+
+A real use case for a VM often involves customization and configuration of not just the virtual machine itself but of the workloads that it hosts, or essentially the purpose of the VM. This is where a tool like OpenShift Lightspeed can assist by enabling those unfamiliar with the platform to perform actions in an accelerated fashion.
+
+In addition to answering questions about your OpenShift cluster and the workloads running there, OpenShift Lightspeed can also be used to help create resources. While it currently does not have the capability of performing cluster management operations on its own, it can provide example configurations that can be used to perform those actions.
+
+In this task we will provide a prompt to OpenShift Lightspeed to ask it to help us create a virtual machine for a specific purpose. Once it responds, we will use what it provides to create the virtual machine that we need.
+
+=== Create a prompt for the VM
+
+Our task is to create a virtual machine that serves as a database server by default without additional configuration by the end user.
+
+Copy and paste the following prompt into OpenShift Lightspeed and click the `Send` button when you are ready.
+
+[source,shell,subs=attributes,role=execute]
+----
+Create a YAML manifest that creates a VM in the {modernize_ocp_virt_username}-vms project that has CentOS Stream 9 as its operating system, to be used as a database-server. Configure it with a username and password through cloudinit, and automatically install mariadb and configure it to run on startup.
+----
+
+image::ocp5/module-08-intelligentocp/28-create-vm-prompt.png["Lightspeed chat with the database server VM creation prompt pasted in", link=self,window=blank,width=100%]
+
+OpenShift Lightspeed will respond with with a YAML manifest that can be used to create the VM we have requested and its rationale for providing its answer.
+
+image::ocp5/module-08-intelligentocp/29-create-vm-answer.png["Lightspeed response with a YAML manifest for the database server VM", link=self,window=blank,width=100%]
+
+NOTE: Due to the nature of generative AI, there is a chance that your response does not look exactly like that provided in the screenshot above and may not work if copied and pasted directly. Compare it to the example below.
+
+The YAML provided should look similar to the following, use it to provision the VM requested:
+
+[source,yaml,subs=attributes,role=execute]
+----
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: database-server
+  namespace: {modernize_ocp_virt_username}-vms
+spec:
+  running: true
+  template:
+    metadata:
+      labels:
+        kubevirt.io/vm: database-server
+    spec:
+      domain:
+        cpu:
+          cores: 1
+        devices:
+          disks:
+          - name: rootdisk
+            disk:
+              bus: virtio
+          - name: cloudinitdisk
+            disk:
+              bus: virtio
+        resources:
+          requests:
+            memory: 2Gi
+      volumes:
+      - name: rootdisk
+        containerDisk:
+          image: quay.io/containerdisks/centos-stream:9
+      - name: cloudinitdisk
+        cloudInitNoCloud:
+          userData: |-
+            #cloud-config
+            user: dbadmin
+            password: dbpassword
+            chpasswd: { expire: False}
+            packages:
+              - mariadb-server
+            runcmd:
+              - systemctl enable mariadb
+              - systemctl start mariadb
+----
+
+After copying the YAML above, you can use the OpenShift Quick Create button to deploy the VM.
+
+Click on the Quick Create button at the top of the console, and select `Import YAML` from the dropdown menu.
+
+image::ocp5/module-08-intelligentocp/30-quick-create-yaml.png["Quick Create button dropdown with Import YAML option highlighted", link=self,window=blank,width=100%]
+
+Paste the YAML manifest provided and click the `Create` button at the bottom.
+
+image::ocp5/module-08-intelligentocp/31-paste-yaml.png["Import YAML editor with the VM manifest pasted and Create button at bottom", link=self,window=blank,width=100%]
+
+The VM should start provisioning and after a few moments it will enter the `Running` state. You can see that it was placed in the {modernize_ocp_virt_username}-vms namespace as directed, and is called database-server, and is running the CentOS Stream 9 operating system.
+
+image::ocp5/module-08-intelligentocp/32-lightspeed-vm-running.png["database-server VM in Running state showing CentOS Stream 9 operating system", link=self,window=blank,width=100%]
+
+Click on the `Console` tab, and use the credentials to login, and verify that mariadb is installed, and running by using the following command:
+
+[source,shell,subs=attributes,role=execute]
+----
+sudo mysql -u root
+----
+
+image::ocp5/module-08-intelligentocp/33-lightspeed-vm-console.png["VM console showing successful MariaDB login via sudo mysql -u root", link=self,window=blank,width=100%]
+
+
+[[troubleshoot-vm-lightspeed]]
+== Troubleshoot a VM with OpenShift Lightspeed
+
+In addition to answering basic questions about the platform, and generating configurations that can be used to deploy VMs or create other resources, OpenShift Lightspeed can also be used to troubleshoot issues with the platform and applications.
+
+In this task we will configure a VM to fail on purpose, and then ask OpenShift Lightspeed if it can diagnose our issue to see what it says.
+
+Ensure that you are in your `{modernize_ocp_virt_username}-vms` project and click the `Create` button in the upper right corner and select the `From template` option from the dropdown menu.
+
+image::ocp5/module-08-intelligentocp/34-create-vm-from-template.png["Create button with From template option in the dropdown menu", link=self,window=blank,width=100%]
+
+On the `Create new VirtualMachine` page select the tile for the Fedora VM.
+
+image::ocp5/module-08-intelligentocp/35-fedora-tile.png["VM template catalog with the Fedora VM tile highlighted", link=self,window=blank,width=100%]
+
+When the Fedora VM dialog appears, name your virtual machine `fedora-broken` and click the button to `Customize VirtualMachine`.
+
+image::ocp5/module-08-intelligentocp/36-customize-vm.png["Fedora VM dialog with name set to fedora-broken and Customize VirtualMachine button", link=self,window=blank,width=100%]
+
+On the `Customize and create VirtualMachine` page, click on the tab for `Disks` and next to the default rootdisk click on the `three-dot` menu and select the `Edit` option.
+
+image::ocp5/module-08-intelligentocp/37-edit-disk.png["Disks tab with three-dot menu open and Edit option for the rootdisk", link=self,window=blank,width=100%]
+
+When the `Edit disk` dialog appears, change the disk size to *10GB*, which is too small to provision the VM correctly. 
+
+Click the `Save` button on the dialog, and when returned to the main screen, click the `Create VirtualMachine` button.
+
+image::ocp5/module-08-intelligentocp/38-edit-disk-small.png["Edit disk dialog with size changed to 10GB and Save button", link=self,window=blank,width=100%]
+
+NOTE: At this point it's likely to assume that a person unfamiliar with how boot images work in OpenShift Virtualization thinks that they have created a VM with a small hard disk to conserve storage space. They may be confused as to why the VM won't successfully boot.
+
+What happens in this scenario is that the VM will stay in the `Provisioning` state and will fail to progress to the `Starting` or `Running` states that we have seen in the past.
+
+image::ocp5/module-08-intelligentocp/39-vm-provisioning.png["fedora-broken VM stuck in Provisioning state", link=self,window=blank,width=100%]
+
+Clicking on the `Events` tab shows us that the DataVolume was created, and no additional information.
+
+image::ocp5/module-08-intelligentocp/40-vm-events.png["Events tab showing DataVolume created event with no additional information", link=self,window=blank,width=100%]
+
+Putting ourselves in the shoes of our unfamiliar virtualization admin, this is where we ask OpenShift Lightspeed for help.
+
+Click on the OpenShift Lightspeed icon in the bottom right corner, and ask it why the VM is unable to boot, and click the `Send` button.
+
+[source,shell,subs=attributes,role=execute]
+----
+Why is the VM fedora-broken in the {modernize_ocp_virt_username}-vms project failing to boot?
+----
+
+image::ocp5/module-08-intelligentocp/41-broken-lightspeed-prompt.png["Lightspeed chat with the question about why fedora-broken VM is failing to boot", link=self,window=blank,width=100%]
+
+OpenShift Lightspeed is able to diagnose the issue as storage-related, providing an error message about the DataVolume being smaller than necessary, and providing a potential resolution.
+
+image::ocp5/module-08-intelligentocp/42-broken-lightspeed-answer.png["Lightspeed response diagnosing the storage issue and suggesting a resolution", link=self,window=blank,width=100%]
+
+NOTE: Due to the nature of generative AI, there is a chance that your response does not look exactly like that provided in the screenshot above.
+
+IMPORTANT: Prior to moving on to the next section, to conserve resources and ensure a smooth lab experience, make sure that any of the VMs created in the *{modernize_ocp_virt_username}-vms* project as a part of this module are shut down, and deleted. We will not be making use of them again.
+
+
+== Conclusion
+In this module we reviewed some fundamentals about virtual machines in OpenShift, and we have been introduced to OpenShift Lightspeed, and how it can be used to answer questions about our platform, and assist us with deploying and troubleshooting applications and VMs.

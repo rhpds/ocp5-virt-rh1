@@ -40,6 +40,11 @@
 ** xref:module-07-workingvms.adoc#service_route_imported[Exposing an Application with a Service/Route - MTV-Imported VMs]
 ** xref:module-07-workingvms.adoc#service_route_staged[Exposing an Application with a Service/Route - Staged VMs]
 
+* xref:module-08-intelligentocp.adoc[Intelligent OpenShift and Virtualization]
+** xref:module-08-intelligentocp.adoc#openshift_lightspeed_create[Using OpenShift Lightspeed to Create VMs]
+** xref:module-08-intelligentocp.adoc#openshift_lightspeed_troubleshoot[Using OpenShift Lightspeed to Create VMs]
+** xref:module-08-intelligentocp.adoc#openshift_mcp_server[Using OpenShift MCP Server to Create VMs]
+
 * xref:conclusion.adoc[Conclusion]
 ** xref:conclusion.adoc#key_takeaways[Key Takeaways]
 ** xref:conclusion.adoc#additional_info[Additional Information]
