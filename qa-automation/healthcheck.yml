@@ -233,23 +233,24 @@
       register: showroom_pods
       failed_when: false
 
-    - name: Fail when a user has no lab guide pod
+    - name: Fail when a user has no working lab guide
       vars:
-        found: "{{ showroom_pods.resources | default([]) | map(attribute='metadata.namespace') | unique | list | length }}"
-      ansible.builtin.set_fact:
-        failures: "{{ failures + ['lab guide: ' ~ found ~ ' of ' ~ users ~ ' users have a Showroom pod'] }}"
-      when: found | int < users | int
-
-    - name: Fail when a lab guide container is not ready
-      vars:
-        unready: >-
-          {{ showroom_pods.resources | default([]) | selectattr('status.containerStatuses', 'defined')
-             | map(attribute='status.containerStatuses') | flatten | rejectattr('ready') | list }}
+        working: >-
+          {%- set ns = namespace(users=[]) -%}
+          {%- for pod in showroom_pods.resources | default([]) -%}
+          {%- set status = pod.status | default({}, true) -%}
+          {%- set containers = status.containerStatuses | default([], true) -%}
+          {%- if status.phase | default('') == 'Running' and containers | length > 0
+                and containers | rejectattr('ready') | list | length == 0 -%}
+          {%- set ns.users = ns.users + [pod.metadata.namespace] -%}
+          {%- endif -%}
+          {%- endfor -%}
+          {{ ns.users | unique | list | length }}
       ansible.builtin.set_fact:
         failures: >-
-          {{ failures + ['lab guide: ' ~ (unready | length) ~ ' containers not ready ('
-             ~ (unready | map(attribute='name') | unique | join(', ')) ~ ')'] }}
-      when: unready | length > 0
+          {{ failures + ['lab guide: ' ~ working ~ ' of ' ~ users
+             ~ ' users have a working Showroom pod, the rest cannot open the lab guide'] }}
+      when: working | int < users | int
 
     - name: Report healthy
       ansible.builtin.debug:
