@@ -1,0 +1,105 @@
+---
+# module-01: creates the project and fedora01, then runs the lifecycle the guide
+# teaches: start, stop, restart, live migrate. Later modules reuse fedora01.
+# The console tour and the Lightspeed pop-up have no API behaviour and are not run.
+
+- name: Create the working project
+  ansible.builtin.command:
+    argv: [oc, new-project, "{{ e2e_ns }}"]
+  changed_when: true
+
+- name: List the staged VMs the guide says the learner can see
+  ansible.builtin.command:
+    argv: [oc, get, vm, -n, "{{ e2e_staged_ns }}", -o, "jsonpath={.items[*].metadata.name}"]
+  register: m1_staged
+  changed_when: false
+  failed_when: false
+
+- name: 'module-01: the staged VMs must be visible'
+  vars:
+    found: "{{ m1_staged.stdout | default('') | split }}"
+  ansible.builtin.assert:
+    that: "['database', 'winweb01', 'winweb02'] | difference(found) | length == 0"
+    fail_msg: >-
+      {{ e2e_user }} cannot see database, winweb01 and winweb02 in {{ e2e_staged_ns }}
+      (found: {{ found }}). The guide starts from those VMs.
+
+- name: Render the fedora-server-small template
+  ansible.builtin.command:
+    argv: [oc, process, fedora-server-small, -n, openshift, -p, "NAME={{ e2e_vm1 }}", -o, json]
+  register: m1_rendered
+  changed_when: false
+
+- name: Create {{ e2e_vm1 }}
+  ansible.builtin.command:
+    argv: [oc, create, -n, "{{ e2e_ns }}", -f, "-"]
+    stdin: "{{ m1_rendered.stdout }}"
+  changed_when: true
+
+- name: Start {{ e2e_vm1 }}
+  ansible.builtin.include_tasks: e2e-vm-power.yml
+  vars:
+    power_vm: "{{ e2e_vm1 }}"
+    power_state: Always
+
+- name: Stop {{ e2e_vm1 }} - Controlling Virtual Machine State
+  ansible.builtin.include_tasks: e2e-vm-power.yml
+  vars:
+    power_vm: "{{ e2e_vm1 }}"
+    power_state: Halted
+
+- name: Start {{ e2e_vm1 }} again
+  ansible.builtin.include_tasks: e2e-vm-power.yml
+  vars:
+    power_vm: "{{ e2e_vm1 }}"
+    power_state: Always
+
+- name: Read the node before the live migration
+  ansible.builtin.command:
+    argv: [oc, get, vmi, "{{ e2e_vm1 }}", -n, "{{ e2e_ns }}", "-o", "jsonpath={.status.nodeName}"]
+  register: m1_node_before
+  changed_when: false
+
+- name: Start a live migration
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: kubevirt.io/v1
+      kind: VirtualMachineInstanceMigration
+      metadata:
+        name: "migrate-{{ e2e_vm1 }}"
+        namespace: "{{ e2e_ns }}"
+      spec:
+        vmiName: "{{ e2e_vm1 }}"
+
+- name: Wait for the migration to finish
+  ansible.builtin.command:
+    argv: [oc, get, vmim, "migrate-{{ e2e_vm1 }}", -n, "{{ e2e_ns }}", "-o", "jsonpath={.status.phase}"]
+  register: m1_phase
+  until: m1_phase.stdout in ['Succeeded', 'Failed']
+  retries: "{{ e2e_retries }}"
+  delay: "{{ e2e_poll_delay }}"
+  changed_when: false
+  failed_when: false
+
+- name: Read the node after the live migration
+  ansible.builtin.command:
+    argv: [oc, get, vmi, "{{ e2e_vm1 }}", -n, "{{ e2e_ns }}", "-o", "jsonpath={.status.nodeName}"]
+  register: m1_node_after
+  changed_when: false
+
+- name: 'module-01: the VM must live-migrate to another node'
+  ansible.builtin.assert:
+    that:
+      - m1_phase.stdout | default('') == 'Succeeded'
+      - m1_node_before.stdout | length > 0
+      - m1_node_after.stdout | length > 0
+      - m1_node_after.stdout != m1_node_before.stdout
+    fail_msg: >-
+      Live migration of {{ e2e_vm1 }} did not complete on a new node
+      (phase {{ m1_phase.stdout | default('none') }},
+      node {{ m1_node_before.stdout | default('none') }} -> {{ m1_node_after.stdout | default('none') }}).
+
+- name: 'module-01: not verified'
+  ansible.builtin.debug:
+    msg: "pause/unpause and the console tour were not run."

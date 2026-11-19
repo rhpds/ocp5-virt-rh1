@@ -1,0 +1,94 @@
+---
+# module-05: checks the instance type and preference the guide picks, then creates
+# the MariaDB VM from them and the guide's cloud-init.
+#
+# The VM is not booted: cloud-init and MariaDB take minutes and can only be checked
+# from inside the guest. "Save as template" and creating a VM from the saved
+# template are console-only and not run.
+
+- name: Read the instance type and preference the guide selects
+  ansible.builtin.command:
+    argv: [oc, get, "{{ item.kind }}", "{{ item.name }}", -o, name]
+  loop:
+    - { kind: virtualmachineclusterinstancetype, name: "{{ e2e_instancetype }}" }
+    - { kind: virtualmachineclusterpreference, name: "{{ e2e_preference }}" }
+  register: m5_catalog
+  changed_when: false
+  failed_when: false
+
+- name: 'module-05: the instance type and preference must exist'
+  vars:
+    missing: "{{ m5_catalog.results | rejectattr('rc', 'equalto', 0) | map(attribute='item.name') | list }}"
+  ansible.builtin.assert:
+    that: missing | length == 0
+    fail_msg: >-
+      Missing or unreadable: {{ missing }}. The guide has the learner pick the 2xmedium
+      instance type with the centos.stream10 preference.
+
+- name: Create the VM from the instance type and preference
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: kubevirt.io/v1
+      kind: VirtualMachine
+      metadata:
+        name: "{{ e2e_custom_vm }}"
+        namespace: "{{ e2e_ns }}"
+      spec:
+        runStrategy: Always
+        instancetype:
+          name: "{{ e2e_instancetype }}"
+          kind: VirtualMachineClusterInstancetype
+        preference:
+          name: "{{ e2e_preference }}"
+          kind: VirtualMachineClusterPreference
+        dataVolumeTemplates:
+          - metadata:
+              name: "{{ e2e_custom_vm }}"
+            spec:
+              sourceRef:
+                kind: DataSource
+                name: centos-stream10
+                namespace: openshift-virtualization-os-images
+              storage:
+                resources:
+                  requests:
+                    storage: 30Gi
+        template:
+          spec:
+            domain:
+              devices: {}
+            volumes:
+              - name: rootdisk
+                dataVolume:
+                  name: "{{ e2e_custom_vm }}"
+              - name: cloudinitdisk
+                cloudInitNoCloud:
+                  userData: |-
+                    #cloud-config
+                    packages:
+                      - mariadb-server
+                    runcmd:
+                      - systemctl enable mariadb
+                      - systemctl start mariadb
+
+- name: 'module-05: the VM must be accepted with its instance type'
+  ansible.builtin.command:
+    argv: [oc, get, vm, "{{ e2e_custom_vm }}", -n, "{{ e2e_ns }}", "-o",
+           "jsonpath={.spec.instancetype.name}"]
+  register: m5_vm
+  changed_when: false
+  failed_when: false
+
+- name: Check the VM exists
+  ansible.builtin.assert:
+    that: m5_vm.stdout | default('') == e2e_instancetype
+    fail_msg: >-
+      {{ e2e_custom_vm }} was not created from {{ e2e_instancetype }}
+      (found {{ m5_vm.stdout | default('nothing') }}).
+
+- name: 'module-05: not verified'
+  ansible.builtin.debug:
+    msg: >-
+      MariaDB in the guest, Save as template and creating a VM from the saved template
+      were not run.

@@ -1,0 +1,84 @@
+---
+# Hot-plugs the flat network into a running VM and waits for it to be connected.
+# Input: attach_vm.
+#
+# The hard check is that the VMI reports the interface with its link up — what the
+# guide has the learner look at after the hot-plug migration. An address is only
+# reported when a DHCP server answers on the flat segment; that is not guaranteed
+# on every cluster, so a missing lease is reported, not failed.
+
+- name: Read the VM's networks
+  kubernetes.core.k8s_info:
+    api_version: kubevirt.io/v1
+    kind: VirtualMachine
+    name: "{{ attach_vm }}"
+    namespace: "{{ e2e_ns }}"
+  register: attach_vm_object
+
+- name: Add the flat-network interface to {{ attach_vm }}
+  when: >-
+    ((attach_vm_object.resources | default([], true) | first | default({}, true))
+     .spec.template.spec.networks | default([], true))
+    | selectattr('name', 'equalto', e2e_nad_interface) | list | length == 0
+  ansible.builtin.command:
+    argv:
+      - oc
+      - patch
+      - vm
+      - "{{ attach_vm }}"
+      - -n
+      - "{{ e2e_ns }}"
+      - --type=json
+      - -p
+      - >-
+        [{"op": "add", "path": "/spec/template/spec/domain/devices/interfaces/-",
+          "value": {"name": "{{ e2e_nad_interface }}", "bridge": {}}},
+         {"op": "add", "path": "/spec/template/spec/networks/-",
+          "value": {"name": "{{ e2e_nad_interface }}",
+                    "multus": {"networkName": "{{ e2e_nad_name }}"}}}]
+  changed_when: true
+
+- name: Wait for {{ attach_vm }} to report the flat network as connected
+  vars:
+    interfaces: >-
+      {{ ((attach_vmi.resources | default([], true) | first | default({}, true))
+          .status | default({}, true)).interfaces | default([], true) }}
+    connected: >-
+      {{ interfaces | selectattr('name', 'equalto', e2e_nad_interface)
+         | selectattr('linkState', 'defined') | selectattr('linkState', 'equalto', 'up')
+         | list | length > 0 }}
+  block:
+    - name: Poll the VMI interfaces
+      kubernetes.core.k8s_info:
+        api_version: kubevirt.io/v1
+        kind: VirtualMachineInstance
+        name: "{{ attach_vm }}"
+        namespace: "{{ e2e_ns }}"
+      register: attach_vmi
+      until: connected | bool
+      retries: "{{ e2e_retries }}"
+      delay: "{{ e2e_poll_delay }}"
+      failed_when: false
+
+    - name: 'module-04: the flat network must be connected'
+      ansible.builtin.assert:
+        that: connected | bool
+        fail_msg: >-
+          {{ attach_vm }} does not report an interface named {{ e2e_nad_interface }} with
+          its link up. The guide shows the adapter connected after the hot-plug migration.
+
+- name: 'module-04: report the address on the flat network'
+  vars:
+    interfaces: >-
+      {{ ((attach_vmi.resources | default([], true) | first | default({}, true))
+          .status | default({}, true)).interfaces | default([], true) }}
+    addresses: >-
+      {{ interfaces | selectattr('name', 'equalto', e2e_nad_interface)
+         | map(attribute='ipAddresses', default=[]) | flatten }}
+    in_subnet: "{{ addresses | select('match', e2e_flat_address_regex) | list }}"
+  ansible.builtin.debug:
+    msg: >-
+      {{ (e2e_nad_interface ~ ' on ' ~ attach_vm ~ ' has ' ~ (in_subnet | join(', ')))
+         if in_subnet | length > 0 else
+         ('NOT VERIFIED: ' ~ e2e_nad_interface ~ ' on ' ~ attach_vm ~ ' is linked up but has no
+          address in ' ~ e2e_flat_subnet ~ '. No DHCP server answered on the flat segment.') }}

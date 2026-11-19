@@ -1,0 +1,177 @@
+---
+# module-03: backs up fedora02 with the guide's Backup, deletes the VM and
+# restores it. The restored VM is left stopped; module 7 starts it.
+# Reading the DataProtectionApplication in the console is UI-only and not run.
+
+- name: Read the DataProtectionApplication
+  kubernetes.core.k8s_info:
+    api_version: oadp.openshift.io/v1alpha1
+    kind: DataProtectionApplication
+    name: oadp-dpa
+    namespace: "{{ e2e_oadp_ns }}"
+  register: m3_dpa
+
+- name: 'module-03: the DataProtectionApplication must have the kubevirt plugin'
+  vars:
+    dpa: "{{ m3_dpa.resources | default([], true) | first | default({}, true) }}"
+    plugins: >-
+      {{ ((((dpa.spec | default({}, true)).configuration | default({}, true)).velero
+          | default({}, true)).defaultPlugins) | default([], true) }}
+  ansible.builtin.assert:
+    that:
+      - m3_dpa.resources | default([]) | length == 1
+      - "'kubevirt' in plugins"
+    fail_msg: >-
+      oadp-dpa in {{ e2e_oadp_ns }} is missing or has no kubevirt plugin (plugins: {{ plugins }}).
+      Without it a VM backup is not consistent.
+
+- name: Read the VM to back up
+  ansible.builtin.command:
+    argv: [oc, get, vm, "{{ e2e_vm2 }}", -n, "{{ e2e_ns }}", "-o", "jsonpath={.metadata.uid}"]
+  register: m3_old_uid
+  changed_when: false
+  failed_when: false
+
+- name: 'module-03: fedora02 must exist'
+  ansible.builtin.assert:
+    that: m3_old_uid.stdout | default('') | length > 0
+    fail_msg: >-
+      {{ e2e_vm2 }} does not exist in {{ e2e_ns }}; module 3 backs up the clone made
+      in module 2, so run modules 1 to 3 in the same invocation.
+
+- name: Create the backup
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: velero.io/v1
+      kind: Backup
+      metadata:
+        name: "{{ e2e_backup_name }}"
+        namespace: "{{ e2e_oadp_ns }}"
+        labels:
+          velero.io/storage-location: default
+      spec:
+        defaultVolumesToFsBackup: false
+        orLabelSelectors:
+          - matchLabels:
+              app: "{{ e2e_vm2 }}"
+          - matchLabels:
+              vm.kubevirt.io/name: "{{ e2e_vm2 }}"
+        csiSnapshotTimeout: 10m0s
+        ttl: 720h0m0s
+        itemOperationTimeout: 4h0m0s
+        storageLocation: oadp-dpa-1
+        hooks: {}
+        includedNamespaces:
+          - "{{ e2e_ns }}"
+        snapshotMoveData: false
+
+- name: Wait for the backup to finish
+  ansible.builtin.command:
+    argv: [oc, get, backups.velero.io, "{{ e2e_backup_name }}", -n, "{{ e2e_oadp_ns }}", "-o",
+           "jsonpath={.status.phase}|{.status.errors}"]
+  register: m3_backup
+  until: m3_backup.stdout.split('|')[0] in ['Completed', 'PartiallyFailed', 'Failed', 'FailedValidation']
+  retries: "{{ e2e_oadp_retries }}"
+  delay: "{{ e2e_poll_delay }}"
+  changed_when: false
+  failed_when: false
+
+- name: 'module-03: the backup must complete without errors'
+  vars:
+    parts: "{{ m3_backup.stdout | default('|') | split('|') }}"
+  ansible.builtin.assert:
+    that:
+      - parts[0] == 'Completed'
+      - parts[1] | default('0') | int == 0
+    fail_msg: >-
+      Backup {{ e2e_backup_name }} ended in phase {{ parts[0] | default('none (timed out)') }}
+      with {{ parts[1] | default('0') }} errors. Check BackupStorageLocation oadp-dpa-1
+      in {{ e2e_oadp_ns }}.
+
+- name: Stop the VM before deleting it
+  ansible.builtin.include_tasks: e2e-vm-power.yml
+  vars:
+    power_vm: "{{ e2e_vm2 }}"
+    power_state: Halted
+
+- name: Delete the VM
+  ansible.builtin.command:
+    argv: [oc, delete, vm, "{{ e2e_vm2 }}", -n, "{{ e2e_ns }}", --ignore-not-found]
+  changed_when: true
+
+- name: Wait for the VM to be gone
+  ansible.builtin.command:
+    argv: [oc, get, vm, "{{ e2e_vm2 }}", -n, "{{ e2e_ns }}", -o, name]
+  register: m3_vm_gone
+  until: (m3_vm_gone.rc | default(1)) != 0
+  retries: "{{ e2e_retries }}"
+  delay: "{{ e2e_poll_delay }}"
+  changed_when: false
+  failed_when: false
+
+- name: 'module-03: the VM must be gone so the restore proves something'
+  ansible.builtin.assert:
+    that: (m3_vm_gone.rc | default(1)) != 0
+    fail_msg: "{{ e2e_vm2 }} was not deleted, so a restore would prove nothing."
+
+- name: Restore from the backup
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: velero.io/v1
+      kind: Restore
+      metadata:
+        name: "{{ e2e_restore_name }}"
+        namespace: "{{ e2e_oadp_ns }}"
+      spec:
+        backupName: "{{ e2e_backup_name }}"
+        includedResources: []
+        excludedResources:
+          - nodes
+          - events
+          - events.events.k8s.io
+          - backups.velero.io
+          - restores.velero.io
+        restorePVs: true
+
+- name: Wait for the restore to finish
+  ansible.builtin.command:
+    argv: [oc, get, restores.velero.io, "{{ e2e_restore_name }}", -n, "{{ e2e_oadp_ns }}", "-o",
+           "jsonpath={.status.phase}|{.status.errors}"]
+  register: m3_restore
+  until: m3_restore.stdout.split('|')[0] in ['Completed', 'PartiallyFailed', 'Failed', 'FailedValidation']
+  retries: "{{ e2e_oadp_retries }}"
+  delay: "{{ e2e_poll_delay }}"
+  changed_when: false
+  failed_when: false
+
+- name: 'module-03: the restore must complete without errors'
+  vars:
+    parts: "{{ m3_restore.stdout | default('|') | split('|') }}"
+  ansible.builtin.assert:
+    that:
+      - parts[0] == 'Completed'
+      - parts[1] | default('0') | int == 0
+    fail_msg: >-
+      Restore {{ e2e_restore_name }} ended in phase {{ parts[0] | default('none (timed out)') }}
+      with {{ parts[1] | default('0') }} errors.
+
+- name: Read the restored VM
+  ansible.builtin.command:
+    argv: [oc, get, vm, "{{ e2e_vm2 }}", -n, "{{ e2e_ns }}", "-o", "jsonpath={.metadata.uid}"]
+  register: m3_new_uid
+  until: m3_new_uid.stdout | default('') | length > 0
+  retries: "{{ e2e_retries }}"
+  delay: "{{ e2e_poll_delay }}"
+  changed_when: false
+  failed_when: false
+
+- name: 'module-03: the restore must bring back a new VM object'
+  ansible.builtin.assert:
+    that:
+      - m3_new_uid.stdout | default('') | length > 0
+      - m3_new_uid.stdout != m3_old_uid.stdout
+    fail_msg: >-
+      After a Completed restore, {{ e2e_vm2 }} is missing or still has the UID of the VM
+      that was deleted. The learner would see no VM come back.

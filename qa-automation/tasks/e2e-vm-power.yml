@@ -1,0 +1,80 @@
+---
+# Sets a VM's run state and waits for it. Inputs: power_vm, power_state
+# (Always or Halted), and optionally power_ns (defaults to e2e_ns).
+#
+# Templates may express this with the deprecated spec.running, our own
+# definitions with spec.runStrategy; setting both is rejected, so whichever is
+# present is the one patched.
+
+- name: Read how {{ power_vm }} expresses its run state
+  ansible.builtin.command:
+    argv: [oc, get, vm, "{{ power_vm }}", -n, "{{ power_ns | default(e2e_ns) }}", -o, "jsonpath={.spec.runStrategy}|{.spec.running}"]
+  register: power_expr
+  changed_when: false
+
+- name: Set {{ power_vm }} to {{ power_state }}
+  vars:
+    legacy: "{{ (power_expr.stdout.split('|')[0] | length == 0) | bool }}"
+    patch: "{{ ({'spec': {'running': power_state == 'Always'}} if legacy | bool
+               else {'spec': {'runStrategy': power_state}}) }}"
+  ansible.builtin.command:
+    argv: [oc, patch, vm, "{{ power_vm }}", -n, "{{ power_ns | default(e2e_ns) }}", --type=merge, -p, "{{ patch | to_json }}"]
+  changed_when: true
+
+- name: Wait for {{ power_vm }} to stop
+  when: power_state == 'Halted'
+  vars:
+    gone: "{{ (power_vmi.rc | default(1)) != 0 }}"
+    stopped: "{{ power_vm_status.stdout | default('') == 'Stopped' }}"
+  block:
+    - name: Poll until the VMI is gone
+      ansible.builtin.command:
+        argv: [oc, get, vmi, "{{ power_vm }}", -n, "{{ power_ns | default(e2e_ns) }}", -o, name]
+      register: power_vmi
+      until: gone | bool
+      retries: "{{ e2e_retries }}"
+      delay: "{{ e2e_poll_delay }}"
+      changed_when: false
+      failed_when: false
+
+    - name: Poll until the VM reports Stopped
+      ansible.builtin.command:
+        argv: [oc, get, vm, "{{ power_vm }}", -n, "{{ power_ns | default(e2e_ns) }}", -o, "jsonpath={.status.printableStatus}"]
+      register: power_vm_status
+      until: stopped | bool
+      retries: "{{ e2e_retries }}"
+      delay: "{{ e2e_poll_delay }}"
+      changed_when: false
+      failed_when: false
+
+    - name: Assert {{ power_vm }} is stopped
+      ansible.builtin.assert:
+        that:
+          - gone | bool
+          - stopped | bool
+        fail_msg: >-
+          {{ power_vm }} is still running after
+          {{ (e2e_retries | int) * (e2e_poll_delay | int) }}s (status {{ power_vm_status.stdout | default('unknown') }}).
+
+- name: Wait for {{ power_vm }} to run
+  when: power_state == 'Always'
+  vars:
+    running: "{{ power_vmi.stdout | default('') == 'Running' }}"
+  block:
+    - name: Poll the VMI phase
+      ansible.builtin.command:
+        argv: [oc, get, vmi, "{{ power_vm }}", -n, "{{ power_ns | default(e2e_ns) }}", -o, "jsonpath={.status.phase}"]
+      register: power_vmi
+      until: running | bool
+      retries: "{{ e2e_retries }}"
+      delay: "{{ e2e_poll_delay }}"
+      changed_when: false
+      failed_when: false
+
+    - name: Assert {{ power_vm }} is running
+      ansible.builtin.assert:
+        that: running | bool
+        fail_msg: >-
+          {{ power_vm }} did not reach Running within
+          {{ (e2e_retries | int) * (e2e_poll_delay | int) }}s
+          (phase {{ power_vmi.stdout | default('no VMI') }}). A VM that cannot boot is the first thing a learner sees.

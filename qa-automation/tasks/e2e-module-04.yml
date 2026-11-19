@@ -1,0 +1,124 @@
+---
+# module-04: creates the flat-network NAD and hot-plugs it into fedora01, then
+# creates the primary UDN in the pre-provisioned UDN namespace and the VM the
+# guide boots on it.
+#
+# The UDN VM is not started and the in-guest pings are not run: both cost minutes
+# and need a console session. The guide's other observable, that a VM on a
+# primary UDN carries only the pod network, is checked.
+#
+# br-flat is cluster-scoped and shared by every user; it is only read.
+
+- name: Read the br-flat policy the guide inspects
+  kubernetes.core.k8s_info:
+    api_version: nmstate.io/v1
+    kind: NodeNetworkConfigurationPolicy
+    name: br-flat
+  register: m4_bridge
+
+- name: 'module-04: br-flat must exist and be Available'
+  vars:
+    policy: "{{ m4_bridge.resources | default([], true) | first | default({}, true) }}"
+    available: >-
+      {{ (policy.status | default({}, true)).conditions | default([], true)
+         | selectattr('type', 'equalto', 'Available')
+         | selectattr('status', 'equalto', 'True') | list | length }}
+  ansible.builtin.assert:
+    that:
+      - m4_bridge.resources | default([]) | length == 1
+      - available | int == 1
+    fail_msg: >-
+      NodeNetworkConfigurationPolicy br-flat is missing or not Available. The guide's
+      NetworkAttachmentDefinition names br-flat and VMs cannot be placed without it.
+
+- name: Create the network attachment definition
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: k8s.cni.cncf.io/v1
+      kind: NetworkAttachmentDefinition
+      metadata:
+        name: "{{ e2e_nad_name }}"
+        namespace: "{{ e2e_ns }}"
+        annotations:
+          k8s.v1.cni.cncf.io/resource-name: bridge.network.kubevirt.io/br-flat
+      spec:
+        config: >-
+          {{ {'cniVersion': '0.3.1', 'name': e2e_nad_name, 'type': 'cnv-bridge',
+              'bridge': 'br-flat', 'macspoofchk': true} | to_json }}
+
+- name: Attach fedora01 to the flat network
+  ansible.builtin.include_tasks: e2e-attach-flat-network.yml
+  vars:
+    attach_vm: "{{ e2e_vm1 }}"
+
+- name: Create the primary UserDefinedNetwork
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: k8s.ovn.org/v1
+      kind: UserDefinedNetwork
+      metadata:
+        name: "{{ e2e_udn_name }}"
+        namespace: "{{ e2e_udn_ns }}"
+      spec:
+        topology: Layer2
+        layer2:
+          role: Primary
+          subnets:
+            - "{{ e2e_udn_subnet }}"
+
+- name: Wait for the NAD the guide says the UDN creates
+  ansible.builtin.command:
+    argv: [oc, get, network-attachment-definition, "{{ e2e_udn_name }}", -n, "{{ e2e_udn_ns }}", -o, name]
+  register: m4_udn_nad
+  until: (m4_udn_nad.rc | default(1)) == 0
+  retries: "{{ e2e_retries }}"
+  delay: "{{ e2e_poll_delay }}"
+  changed_when: false
+  failed_when: false
+
+- name: 'module-04: the UDN must produce its NAD'
+  ansible.builtin.assert:
+    that: (m4_udn_nad.rc | default(1)) == 0
+    fail_msg: >-
+      UserDefinedNetwork {{ e2e_udn_name }} did not create a NetworkAttachmentDefinition
+      of the same name in {{ e2e_udn_ns }}. Check the UDN status conditions.
+
+- name: Render the rhel9-server-small template for the UDN VM
+  ansible.builtin.command:
+    argv: [oc, process, rhel9-server-small, -n, openshift, -p, "NAME={{ e2e_udn_vm }}", -o, json]
+  register: m4_rendered
+  changed_when: false
+
+- name: Create {{ e2e_udn_vm }} in the UDN namespace
+  ansible.builtin.command:
+    argv: [oc, create, -n, "{{ e2e_udn_ns }}", -f, "-"]
+    stdin: "{{ m4_rendered.stdout }}"
+  changed_when: true
+
+- name: Read the UDN VM's networks
+  kubernetes.core.k8s_info:
+    api_version: kubevirt.io/v1
+    kind: VirtualMachine
+    name: "{{ e2e_udn_vm }}"
+    namespace: "{{ e2e_udn_ns }}"
+  register: m4_udn_vm
+
+- name: 'module-04: the UDN VM must carry only the pod network'
+  vars:
+    networks: "{{ ((m4_udn_vm.resources | default([], true) | first | default({}, true))
+                    .spec.template.spec).networks | default([], true) }}"
+  ansible.builtin.assert:
+    that:
+      - networks | length == 1
+      - networks[0].pod is defined
+    fail_msg: >-
+      The guide says a VM on a primary UDN shows only the default pod-network interface.
+      Networks on {{ e2e_udn_vm }}: {{ networks }}.
+
+- name: 'module-04: not verified'
+  ansible.builtin.debug:
+    msg: >-
+      In-guest pings between VMs and internet access from the UDN VM were not run,
+      and the UDN VM was not booted.

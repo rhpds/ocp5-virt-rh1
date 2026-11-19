@@ -1,0 +1,44 @@
+---
+# module-08: checks the per-user opencode pod the guide execs into is available and
+# that the lab user may exec into it.
+#
+# The Lightspeed chat and the agent's VM creation need an LLM and a human, so they
+# are NOT verified.
+
+- name: Wait for the user's mcp-cli deployment
+  ansible.builtin.command:
+    argv: [oc, get, deployment, mcp-cli, -n, "{{ e2e_mcp_ns }}", "-o",
+           "jsonpath={.status.availableReplicas}"]
+  register: m8_cli
+  until: (m8_cli.stdout | default('0') | int) > 0
+  retries: "{{ e2e_retries }}"
+  delay: "{{ e2e_poll_delay }}"
+  changed_when: false
+  failed_when: false
+
+- name: 'module-08: the opencode pod must be available'
+  ansible.builtin.assert:
+    that: (m8_cli.stdout | default('0') | int) > 0
+    fail_msg: >-
+      Deployment mcp-cli in {{ e2e_mcp_ns }} has no available replica. The guide has the
+      learner run opencode there.
+
+- name: Check the learner can exec into the opencode pod
+  ansible.builtin.command:
+    argv: [oc, exec, "deploy/mcp-cli", -n, "{{ e2e_mcp_ns }}", "--", which, opencode]
+  register: m8_exec
+  changed_when: false
+  failed_when: false
+
+- name: 'module-08: exec must reach opencode'
+  ansible.builtin.assert:
+    that: m8_exec.rc | default(1) == 0
+    fail_msg: >-
+      {{ e2e_user }} cannot run opencode in {{ e2e_mcp_ns }}:
+      {{ m8_exec.stderr | default('') | trim }}
+
+- name: 'module-08: not verified'
+  ansible.builtin.debug:
+    msg: >-
+      The Lightspeed chat and the OpenShift MCP server's VM creation were not run; they
+      need an LLM and a human.

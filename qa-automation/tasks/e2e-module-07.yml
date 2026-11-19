@@ -1,0 +1,150 @@
+---
+# module-07: labels fedora01 and fedora02, restarts them so the label reaches
+# their pods, then creates the Service and the Route.
+#
+# The application itself is not installed in these VMs, so opening the Route, the
+# database-Service error and load balancing are NOT verified. What is verified is
+# that the label reaches both pods, that both are ready endpoints behind the
+# Service, and that the router admits the Route.
+
+- name: Read the two VMs the guide labels
+  ansible.builtin.command:
+    argv: [oc, get, vm, -n, "{{ e2e_ns }}", -o, "jsonpath={.items[*].metadata.name}"]
+  register: m7_vms
+  changed_when: false
+  failed_when: false
+
+- name: 'module-07: both VMs must exist'
+  vars:
+    found: "{{ m7_vms.stdout | default('') | split }}"
+  ansible.builtin.assert:
+    that: "[e2e_vm1, e2e_vm2] | difference(found) | length == 0"
+    fail_msg: >-
+      Needs {{ e2e_vm1 }} and {{ e2e_vm2 }}, found {{ found }}. Run modules 1 to 3
+      in the same invocation.
+
+- name: Label both VMs
+  ansible.builtin.command:
+    argv: [oc, label, vm, "{{ item }}", "env={{ e2e_app_label }}", -n, "{{ e2e_ns }}", --overwrite]
+  loop: ["{{ e2e_vm1 }}", "{{ e2e_vm2 }}"]
+  changed_when: true
+
+- name: Put the label on the VM templates so it reaches the pods
+  ansible.builtin.command:
+    argv: [oc, patch, vm, "{{ item }}", -n, "{{ e2e_ns }}", --type=merge, -p,
+           '{"spec":{"template":{"metadata":{"labels":{"env":"{{ e2e_app_label }}"}}}}}']
+  loop: ["{{ e2e_vm1 }}", "{{ e2e_vm2 }}"]
+  changed_when: true
+
+- name: Stop both VMs
+  ansible.builtin.include_tasks: e2e-vm-power.yml
+  vars:
+    power_vm: "{{ item }}"
+    power_state: Halted
+  loop: ["{{ e2e_vm1 }}", "{{ e2e_vm2 }}"]
+
+- name: Start both VMs so the label reaches the pods
+  ansible.builtin.include_tasks: e2e-vm-power.yml
+  vars:
+    power_vm: "{{ item }}"
+    power_state: Always
+  loop: ["{{ e2e_vm1 }}", "{{ e2e_vm2 }}"]
+
+- name: Create the Service
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: "{{ e2e_service_name }}"
+        namespace: "{{ e2e_ns }}"
+      spec:
+        selector:
+          env: "{{ e2e_app_label }}"
+        ports:
+          - protocol: TCP
+            port: 80
+            targetPort: 80
+
+- name: Read the pods that carry the label
+  vars:
+    pods: "{{ m7_pods.stdout | default('') | split }}"
+    vm1_pods: "{{ pods | select('match', '^virt-launcher-' ~ e2e_vm1 ~ '-') | list }}"
+    vm2_pods: "{{ pods | select('match', '^virt-launcher-' ~ e2e_vm2 ~ '-') | list }}"
+  ansible.builtin.command:
+    argv: [oc, get, pods, -n, "{{ e2e_ns }}", "-l", "env={{ e2e_app_label }}", "-o",
+           "jsonpath={.items[*].metadata.name}"]
+  register: m7_pods
+  until: vm1_pods | length == 1 and vm2_pods | length == 1
+  retries: "{{ e2e_retries }}"
+  delay: "{{ e2e_poll_delay }}"
+  changed_when: false
+  failed_when: false
+
+- name: 'module-07: each VM''s pod must carry the label and run'
+  vars:
+    pods: "{{ m7_pods.stdout | default('') | split }}"
+    vm1_pods: "{{ pods | select('match', '^virt-launcher-' ~ e2e_vm1 ~ '-') | list }}"
+    vm2_pods: "{{ pods | select('match', '^virt-launcher-' ~ e2e_vm2 ~ '-') | list }}"
+  ansible.builtin.assert:
+    that:
+      - vm1_pods | length == 1
+      - vm2_pods | length == 1
+    fail_msg: >-
+      Service selector env={{ e2e_app_label }} matches no pod for
+      {{ e2e_vm1 }} or {{ e2e_vm2 }} (labelled pods: {{ pods }}). The label did not
+      reach the virt-launcher pods.
+
+- name: Create the Route
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: route.openshift.io/v1
+      kind: Route
+      metadata:
+        name: "{{ e2e_route_name }}"
+        namespace: "{{ e2e_ns }}"
+      spec:
+        to:
+          kind: Service
+          name: "{{ e2e_service_name }}"
+        port:
+          targetPort: 80
+        tls:
+          termination: edge
+          insecureEdgeTerminationPolicy: Redirect
+
+- name: Wait for the router to admit the Route
+  vars:
+    route: "{{ m7_route.resources | default([], true) | first | default({}, true) }}"
+    admitted: >-
+      {{ ((route.status | default({}, true)).ingress | default([], true))
+         | map(attribute='conditions', default=[]) | flatten
+         | selectattr('type', 'equalto', 'Admitted')
+         | selectattr('status', 'equalto', 'True') | list | length > 0 }}
+  block:
+    - name: Poll the Route
+      kubernetes.core.k8s_info:
+        api_version: route.openshift.io/v1
+        kind: Route
+        name: "{{ e2e_route_name }}"
+        namespace: "{{ e2e_ns }}"
+      register: m7_route
+      until: admitted | bool
+      retries: "{{ e2e_retries }}"
+      delay: "{{ e2e_poll_delay }}"
+      failed_when: false
+
+    - name: 'module-07: the Route must be admitted'
+      ansible.builtin.assert:
+        that: admitted | bool
+        fail_msg: >-
+          The router did not admit Route {{ e2e_route_name }}, so the learner would get
+          no Location to open.
+
+- name: 'module-07: not verified'
+  ansible.builtin.debug:
+    msg: >-
+      The application behind the Route was not verified, and load balancing across the
+      two VMs was not exercised.

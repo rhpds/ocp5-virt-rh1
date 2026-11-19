@@ -1,13 +1,211 @@
 ---
-# E2E — End-to-end test
-# Runs all module solve + validate sequences to verify the full lab
-# works from start to finish without manual intervention.
+# End-to-end replay of the lab guide for ONE user, run AS that user.
+#
+#   curl -sk -N "$SHOWROOM_URL/stream/qa/e2e"
+#
+# DESTRUCTIVE, DISPOSABLE ENVIRONMENTS ONLY. It consumes E2E_USER's slot and
+# cannot be undone: no cleanup, no re-run. It therefore refuses to start unless
+# E2E_DISPOSABLE=true is set in the runner's environment (an env var, because
+# /stream/qa/e2e cannot pass -e).
+#
+# Settings, all environment variables: E2E_MODULES (CSV, default all),
+# E2E_USER, E2E_USER_PASSWORD, E2E_API_URL.
+#
+# Each module creates the objects the guide creates, in order, with the names
+# fixed below, and stops at the first step that fails. Modules depend on earlier
+# ones, so select a prefix, e.g. E2E_MODULES=1,2,3. --tags module0N exists but
+# does not pull in a module's dependencies.
+#
+# Deliberately skipped to keep the run short: anything that needs an in-guest
+# session, and any boot or migration the next module does not need. Each module
+# says what it left out.
 
-- name: "End-to-End Test"
+- name: End-to-end replay of the lab guide
   hosts: localhost
   connection: local
   gather_facts: false
+  environment:
+    KUBECONFIG: "{{ e2e_kubeconfig }}"
+    K8S_AUTH_KUBECONFIG: "{{ e2e_kubeconfig }}"
+  module_defaults:
+    group/kubernetes.core.k8s:
+      kubeconfig: "{{ e2e_kubeconfig }}"
+  vars:
+    e2e_kubeconfig: /tmp/e2e-lab-user.kubeconfig
+    e2e_user_data_file: /user_data/user_data.yml
+
+    e2e_disposable: "{{ lookup('env', 'E2E_DISPOSABLE') | default('false', true) | bool }}"
+    e2e_modules: "{{ lookup('env', 'E2E_MODULES') | default('1,2,3,4,5,6,7,8', true) }}"
+    e2e_module_list: "{{ (e2e_modules | string).split(',') | map('trim') | reject('equalto', '') | map('int') | list }}"
+    user_data: "{{ lookup('file', e2e_user_data_file, errors='ignore') | default('{}', true) | from_yaml }}"
+    e2e_user: "{{ lookup('env', 'E2E_USER') | default(user_data.user | default('', true), true) }}"
+    user_password: "{{ lookup('env', 'E2E_USER_PASSWORD') | default(user_data.password | default('', true), true) }}"
+    api_url: "{{ lookup('env', 'E2E_API_URL') | default(user_data.openshift_api_url | default('', true), true) }}"
+
+    # Ceilings, not estimates. Polling is cheap; the waits that cost minutes are
+    # only made where the next module needs the VM running.
+    e2e_poll_delay: 5
+    e2e_retries: 120         # boots, snapshots, clones, migrations: 10 min
+    e2e_oadp_retries: 120    # backup and restore through ODF: 10 min
+
+    # Names from the guide.
+    e2e_ns: "vmexamples-{{ e2e_user }}"
+    e2e_staged_ns: "vmimported-{{ e2e_user }}"
+    e2e_udn_ns: "vmexamples-{{ e2e_user }}-udn"
+    e2e_oadp_ns: "oadp-{{ e2e_user }}"
+    e2e_mtv_ns: "mtv-{{ e2e_user }}"
+    e2e_mcp_ns: "mcp-cli-{{ e2e_user }}"
+    e2e_vm1: fedora01
+    e2e_vm2: fedora02
+    e2e_custom_vm: centos-mariadb
+    e2e_udn_vm: rhel-udn
+    e2e_udn_name: primary-udn
+    e2e_nad_name: flatnetwork
+    e2e_backup_name: backup-fedora02
+    e2e_restore_name: restore-fedora02
+    e2e_service_name: webapp
+    e2e_route_name: route-webapp
+    e2e_app_label: webapp
+
+    # Values from the guide.
+    e2e_vm_storageclass: ocs-external-storagecluster-ceph-rbd-virtualization
+    e2e_nad_interface: flatnetwork
+    e2e_flat_subnet: 192.168.64.0/18
+    e2e_flat_address_regex: '^192\.168\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\.[0-9]{1,3}$'
+    e2e_udn_subnet: 192.168.254.0/24
+    e2e_instancetype: u1.2xmedium
+    e2e_preference: centos.stream10
+    e2e_clone_api_version: clone.kubevirt.io/v1beta1
+
   tasks:
-    - name: "TODO: Implement end-to-end test sequence"
-      ansible.builtin.debug:
-        msg: "Replace this task with your e2e test implementation"
+
+    - name: Refuse to run unless this is a disposable deployment
+      tags: [always]
+      ansible.builtin.assert:
+        that: e2e_disposable | bool
+        fail_msg: >-
+          The e2e destroys one user's namespaces and cannot be undone. Run it only
+          on a disposable deployment, with E2E_DISPOSABLE=true in the runner's
+          environment. Nothing was read or changed.
+
+    - name: Start from no lab user kubeconfig
+      tags: [always]
+      ansible.builtin.file:
+        path: "{{ e2e_kubeconfig }}"
+        state: absent
+
+    - name: Log in as the lab user
+      tags: [always]
+      ansible.builtin.command:
+        argv: [oc, login, "{{ api_url }}", -u, "{{ e2e_user }}", -p, "{{ user_password }}", --insecure-skip-tls-verify=true]
+      register: lab_login
+      changed_when: false
+      failed_when: false
+      no_log: true
+
+    - name: Ask the API server who the kubeconfig authenticates as
+      tags: [always]
+      ansible.builtin.command:
+        argv: [oc, whoami]
+      register: whoami
+      changed_when: false
+      failed_when: false
+
+    - name: The lab user must be logged in
+      tags: [always]
+      ansible.builtin.assert:
+        that:
+          - lab_login.rc | default(1) == 0
+          - whoami.stdout | default('') | trim == e2e_user
+        fail_msg: >-
+          oc login as {{ e2e_user }} at {{ api_url }} failed ({{ lab_login.stderr | default('') | trim }});
+          the kubeconfig authenticates as '{{ whoami.stdout | default('') | trim }}'. The e2e must act as the
+          learner or it hides per-user RBAC problems.
+
+    - name: Run the modules
+      block:
+
+        - name: Run module 1
+          ansible.builtin.include_tasks:
+            file: tasks/e2e-module-01.yml
+            apply:
+              tags: [module01]
+          when: 1 in e2e_module_list
+          tags: [module01]
+
+        - name: Run module 2
+          ansible.builtin.include_tasks:
+            file: tasks/e2e-module-02.yml
+            apply:
+              tags: [module02]
+          when: 2 in e2e_module_list
+          tags: [module02]
+
+        - name: Run module 3
+          ansible.builtin.include_tasks:
+            file: tasks/e2e-module-03.yml
+            apply:
+              tags: [module03]
+          when: 3 in e2e_module_list
+          tags: [module03]
+
+        - name: Run module 4
+          ansible.builtin.include_tasks:
+            file: tasks/e2e-module-04.yml
+            apply:
+              tags: [module04]
+          when: 4 in e2e_module_list
+          tags: [module04]
+
+        - name: Run module 5
+          ansible.builtin.include_tasks:
+            file: tasks/e2e-module-05.yml
+            apply:
+              tags: [module05]
+          when: 5 in e2e_module_list
+          tags: [module05]
+
+        - name: Run module 6
+          ansible.builtin.include_tasks:
+            file: tasks/e2e-module-06.yml
+            apply:
+              tags: [module06]
+          when: 6 in e2e_module_list
+          tags: [module06]
+
+        - name: Run module 7
+          ansible.builtin.include_tasks:
+            file: tasks/e2e-module-07.yml
+            apply:
+              tags: [module07]
+          when: 7 in e2e_module_list
+          tags: [module07]
+
+        - name: Run module 8
+          ansible.builtin.include_tasks:
+            file: tasks/e2e-module-08.yml
+            apply:
+              tags: [module08]
+          when: 8 in e2e_module_list
+          tags: [module08]
+
+      always:
+        - name: Log out the lab user
+          ansible.builtin.command:
+            argv: [oc, logout]
+          changed_when: false
+          failed_when: false
+          tags: [always]
+
+        - name: Remove the lab user kubeconfig
+          ansible.builtin.file:
+            path: "{{ e2e_kubeconfig }}"
+            state: absent
+          tags: [always]
+
+        - name: Report what the run did not verify
+          ansible.builtin.debug:
+            msg:
+              - "NOT VERIFIED: all in-guest checks (pings, MariaDB, the application), module 6's migration, module 8's AI interaction."
+              - "Boots are only waited for where a later module needs the VM running; see each module's header."
+          tags: [always]

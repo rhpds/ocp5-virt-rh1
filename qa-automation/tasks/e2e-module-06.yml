@@ -1,0 +1,37 @@
+---
+# module-06: checks the two providers the guide shows are visible to the lab user
+# and that vmware can reach vCenter.
+#
+# NO MIGRATION IS RUN: a Plan's vms[] entries and the network and storage maps
+# reference vCenter objects the repo cannot confirm, and a plausible-looking guess
+# would be worse than this gap.
+
+- name: Read the providers in the lab user's mtv namespace
+  kubernetes.core.k8s_info:
+    api_version: forklift.konveyor.io/v1beta1
+    kind: Provider
+    namespace: "{{ e2e_mtv_ns }}"
+  register: m6_providers
+
+- name: 'module-06: both providers must be visible and vmware connected'
+  vars:
+    names: "{{ m6_providers.resources | default([]) | map(attribute='metadata.name') | list }}"
+    vmware: "{{ m6_providers.resources | default([]) | selectattr('metadata.name', 'equalto', 'vmware')
+               | first | default({}, true) }}"
+    connected: >-
+      {{ (vmware.status | default({}, true)).conditions | default([], true)
+         | selectattr('type', 'equalto', 'ConnectionTestSucceeded')
+         | selectattr('status', 'equalto', 'True') | list | length }}
+  ansible.builtin.assert:
+    that:
+      - "['host', 'vmware'] | difference(names) | length == 0"
+      - connected | int == 1
+    fail_msg: >-
+      The guide shows providers 'host' and 'vmware' in {{ e2e_mtv_ns }} (found {{ names }}),
+      and vmware must pass its connection test or no plan can be created.
+
+- name: 'module-06: not verified'
+  ansible.builtin.debug:
+    msg: >-
+      NO MIGRATION WAS RUN. Plan creation, the network and storage maps, the cold
+      migration and the imported VMs were not verified.

@@ -1,0 +1,181 @@
+---
+# module-02: checks fedora01's PVC, snapshots it, restores it, then clones it to
+# fedora02. The guide breaks the guest and restores it; that needs a console
+# session, so a marker label added after the snapshot stands in: the restore has
+# to remove it. fedora02 is left running for module 3.
+
+- name: Read the PVC behind {{ e2e_vm1 }}
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: PersistentVolumeClaim
+    name: "{{ e2e_vm1 }}"
+    namespace: "{{ e2e_ns }}"
+  register: m2_pvc
+
+- name: 'module-02: the PVC must match what the guide describes'
+  vars:
+    pvc: "{{ m2_pvc.resources | default([], true) | first | default({}, true) }}"
+    spec: "{{ pvc.spec | default({}, true) }}"
+  ansible.builtin.assert:
+    that:
+      - m2_pvc.resources | default([]) | length == 1
+      - (pvc.status | default({}, true)).phase | default('') == 'Bound'
+      - "'ReadWriteMany' in spec.accessModes | default([])"
+      - spec.volumeMode | default('') == 'Block'
+      - spec.storageClassName | default('') == e2e_vm_storageclass
+    fail_msg: >-
+      PVC {{ e2e_vm1 }} should be Bound, ReadWriteMany and Block on {{ e2e_vm_storageclass }};
+      found phase {{ (pvc.status | default({}, true)).phase | default('missing') }},
+      access {{ spec.accessModes | default('missing') }},
+      mode {{ spec.volumeMode | default('missing') }},
+      class {{ spec.storageClassName | default('missing') }}.
+
+- name: Take a snapshot of the running VM
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: snapshot.kubevirt.io/v1beta1
+      kind: VirtualMachineSnapshot
+      metadata:
+        name: "snap-{{ e2e_vm1 }}"
+        namespace: "{{ e2e_ns }}"
+      spec:
+        source:
+          apiGroup: kubevirt.io
+          kind: VirtualMachine
+          name: "{{ e2e_vm1 }}"
+
+- name: Wait for the snapshot to finish
+  ansible.builtin.command:
+    argv: [oc, get, virtualmachinesnapshot, "snap-{{ e2e_vm1 }}", -n, "{{ e2e_ns }}", "-o", "jsonpath={.status.phase}"]
+  register: m2_snapshot
+  until: m2_snapshot.stdout in ['Succeeded', 'Failed']
+  retries: "{{ e2e_retries }}"
+  delay: "{{ e2e_poll_delay }}"
+  changed_when: false
+  failed_when: false
+
+- name: 'module-02: the snapshot must succeed'
+  ansible.builtin.assert:
+    that: m2_snapshot.stdout | default('') == 'Succeeded'
+    fail_msg: >-
+      The online snapshot of {{ e2e_vm1 }} did not succeed
+      (phase {{ m2_snapshot.stdout | default('none') }}).
+
+- name: Change the VM after the snapshot so a restore has something to undo
+  ansible.builtin.command:
+    argv: [oc, patch, vm, "{{ e2e_vm1 }}", -n, "{{ e2e_ns }}", --type=merge, -p,
+           '{"spec":{"template":{"metadata":{"labels":{"e2e-marker":"after-snapshot"}}}}}']
+  changed_when: true
+
+- name: Stop {{ e2e_vm1 }} before restoring
+  ansible.builtin.include_tasks: e2e-vm-power.yml
+  vars:
+    power_vm: "{{ e2e_vm1 }}"
+    power_state: Halted
+
+- name: Restore the VM from the snapshot
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: snapshot.kubevirt.io/v1beta1
+      kind: VirtualMachineRestore
+      metadata:
+        name: "restore-{{ e2e_vm1 }}"
+        namespace: "{{ e2e_ns }}"
+      spec:
+        target:
+          apiGroup: kubevirt.io
+          kind: VirtualMachine
+          name: "{{ e2e_vm1 }}"
+        virtualMachineSnapshotName: "snap-{{ e2e_vm1 }}"
+
+- name: Wait for the restore to complete
+  ansible.builtin.command:
+    argv: [oc, get, virtualmachinerestore, "restore-{{ e2e_vm1 }}", -n, "{{ e2e_ns }}", "-o", "jsonpath={.status.complete}"]
+  register: m2_restore
+  until: m2_restore.stdout == 'true'
+  retries: "{{ e2e_retries }}"
+  delay: "{{ e2e_poll_delay }}"
+  changed_when: false
+  failed_when: false
+
+- name: 'module-02: the restore must complete'
+  ansible.builtin.assert:
+    that: m2_restore.stdout | default('') == 'true'
+    fail_msg: >-
+      Restoring {{ e2e_vm1 }} from its snapshot did not complete within
+      {{ (e2e_retries | int) * (e2e_poll_delay | int) }}s.
+
+- name: Read the marker after the restore
+  ansible.builtin.command:
+    argv: [oc, get, vm, "{{ e2e_vm1 }}", -n, "{{ e2e_ns }}", "-o",
+           "jsonpath={.spec.template.metadata.labels.e2e-marker}"]
+  register: m2_marker
+  changed_when: false
+
+- name: 'module-02: the restore must revert the VM spec'
+  ansible.builtin.assert:
+    that: m2_marker.stdout | default('') | length == 0
+    fail_msg: >-
+      {{ e2e_vm1 }} still carries the marker added after the snapshot, so the restore
+      reported complete without reverting it.
+
+- name: Start the restored VM
+  ansible.builtin.include_tasks: e2e-vm-power.yml
+  vars:
+    power_vm: "{{ e2e_vm1 }}"
+    power_state: Always
+
+- name: Clone {{ e2e_vm1 }} to {{ e2e_vm2 }}
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: "{{ e2e_clone_api_version }}"
+      kind: VirtualMachineClone
+      metadata:
+        name: "clone-{{ e2e_vm2 }}"
+        namespace: "{{ e2e_ns }}"
+      spec:
+        source:
+          apiGroup: kubevirt.io
+          kind: VirtualMachine
+          name: "{{ e2e_vm1 }}"
+        target:
+          apiGroup: kubevirt.io
+          kind: VirtualMachine
+          name: "{{ e2e_vm2 }}"
+
+- name: Wait for the clone to finish
+  ansible.builtin.command:
+    argv: [oc, get, virtualmachineclone, "clone-{{ e2e_vm2 }}", -n, "{{ e2e_ns }}", "-o", "jsonpath={.status.phase}"]
+  register: m2_clone
+  until: m2_clone.stdout in ['Succeeded', 'Failed']
+  retries: "{{ e2e_retries }}"
+  delay: "{{ e2e_poll_delay }}"
+  changed_when: false
+  failed_when: false
+
+- name: 'module-02: the clone must succeed'
+  ansible.builtin.assert:
+    that: m2_clone.stdout | default('') == 'Succeeded'
+    fail_msg: >-
+      Cloning {{ e2e_vm1 }} to {{ e2e_vm2 }} ended in phase
+      {{ m2_clone.stdout | default('none') }}. Modules 3, 4 and 7 need the clone.
+
+- name: Give the clone its own app label
+  ansible.builtin.command:
+    argv: [oc, label, vm, "{{ e2e_vm2 }}", "app={{ e2e_vm2 }}", -n, "{{ e2e_ns }}", --overwrite]
+  changed_when: true
+
+- name: Give the clone's pods their own labels, as the guide requires
+  ansible.builtin.command:
+    argv: [oc, patch, vm, "{{ e2e_vm2 }}", -n, "{{ e2e_ns }}", --type=merge, -p,
+           '{"spec":{"template":{"metadata":{"labels":{"app":"{{ e2e_vm2 }}","kubevirt.io/domain":"{{ e2e_vm2 }}"}}}}}']
+  changed_when: true
+
+- name: Start the clone
+  ansible.builtin.include_tasks: e2e-vm-power.yml
+  vars:
+    power_vm: "{{ e2e_vm2 }}"
+    power_state: Always
