@@ -36,23 +36,23 @@ spec:
     - id: module-01
       title: "Introduction and Environment Overview"
       duration_min: 15
-      status: in_progress
+      status: complete
     - id: module-02
       title: "Virtual Machine Management"
       duration_min: 40
-      status: in_progress
+      status: complete
     - id: module-03
       title: "Migrating Existing VMs with MTV"
       duration_min: 30
-      status: in_progress
+      status: complete
     - id: module-04
       title: "VM Storage Management"
       duration_min: 20
-      status: in_progress
+      status: complete
     - id: module-05
       title: "Backup and Recovery with OADP"
       duration_min: 20
-      status: in_progress
+      status: complete
     - id: module-06
       title: "Templates and InstanceType Management"
       duration_min: 20
@@ -60,7 +60,7 @@ spec:
     - id: module-07
       title: "VM Networking"
       duration_min: 25
-      status: in_progress
+      status: complete
     - id: module-08
       title: "Working with VMs and Applications"
       duration_min: 20
@@ -106,9 +106,9 @@ spec:
 development:
   automation:
     ansible:
-      status: in_progress
+      status: complete
   e2e:
-    status: not_started
+    status: in_progress
   healthCheck:
     status: complete
 
