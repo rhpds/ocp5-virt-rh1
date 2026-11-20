@@ -147,7 +147,7 @@ image::ocp5/module-02-storage/18_VM_Clone_Dialog.png[link=self, window=blank, wi
 +
 image::ocp5/module-02-storage/19_VM_Cloned.png[link=self, window=blank, width=100%]
 
-. You can see the new VM is now listed in your project *vmexamples-{user}*, its state is currently *Stopped* and it's creation time is very recent. 
+. You can see the new VM is now listed in your project *vmexamples-{user}*, its state is currently *Stopped* and its creation time is very recent. 
 +
 image::ocp5/module-02-storage/20_Fedora02_Stopped.png[link=self, window=blank, width=100%]
 +

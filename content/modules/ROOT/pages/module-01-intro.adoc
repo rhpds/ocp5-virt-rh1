@@ -2,7 +2,7 @@
 
 == Introduction
 
-The beginning section of this lab will introduce you to the basics of creating and managing VMs in OpenShift Virtualization. Starting with OpenShift 4.19 there is an entirely new UI based on patternfly 6, and a new Virtualization perspective and a tree view for virtual machines that make it easier to visualize and manage your virtualization-based assets. After exploring the UI changes, you will see how the web console guides you through the whole process of creating a virtual machine from a pre-defined template. We will then review the properties of that VM, do some basic management operations, and perform actions like live migration, that are often expected of virtual machine administrators.
+The beginning section of this lab will introduce you to the basics of creating and managing VMs in OpenShift Virtualization. Starting with OpenShift 4.19 there is an entirely new UI based on PatternFly 6, and a new Virtualization perspective and a tree view for virtual machines that make it easier to visualize and manage your virtualization-based assets. After exploring the UI changes, you will see how the web console guides you through the whole process of creating a virtual machine from a pre-defined template. We will then review the properties of that VM, do some basic management operations, and perform actions like live migration, that are often expected of virtual machine administrators.
 
 .*Goals*
 
@@ -83,7 +83,7 @@ image::ocp5/module-01-intro/11_VMs_Stopped.png[link=self, window=blank, width=10
 
 . To create a virtual machine, we must select the project we would like to create it in. 
 
-. In the the center project view, click the toggle button to turn off the option for *Show only projects with VirtualMachines*. This way you can see all of the projects that your user has access to, including the *vmexamples-{user}* project that we created earlier.
+. In the center project view, click the toggle button to turn off the option for *Show only projects with VirtualMachines*. This way you can see all of the projects that your user has access to, including the *vmexamples-{user}* project that we created earlier.
 
 . Click on your *vmexamples-{user}* project and you will see that the virtual machine overview column updates and now has a *Create VirtualMachine* button.
 
@@ -137,7 +137,7 @@ image::ocp5/module-01-intro/16a_Fedora_Running.png[link=self, window=blank, widt
 * *Details*: This tile shows us information about our VM, including its name, status, creation time, OS, virtual resources, and the template from which it was created. It also contains a miniature VNC terminal, and the ability to launch a fullscreen web console.
 * *General*: This tile shows us information specific to OpenShift, including the Namespace (Project), Node, instance name, and Kubernetes pod where the guest is running.
 * *Snapshots*: This tile gives us information about any existing snapshots, and also has the button to quickly create a snapshot.
-* *Network*: This tile gives us the IP address of the virtual machine on the software-defined network (SDN) and it's internal hostname. If no advanced networks are defined, VMs are automatically attached to the pod network. Later in this lab we will explore advanced networking options, and how to customize connectivity for VMs.
+* *Network*: This tile gives us the IP address of the virtual machine on the software-defined network (SDN) and its internal hostname. If no advanced networks are defined, VMs are automatically attached to the pod network. Later in this lab we will explore advanced networking options, and how to customize connectivity for VMs.
 * *Utilization*: This tile gives us an overview of the resources currently in use by this virtual machine, including CPU, Memory, Storage, and Network throughput.
 * *Storage*: This tile gives us information about the current storage volumes, for this VM in particular the cloudinit disk that was used to boot the VM from the template, and the virtual hard disk we installed the machine to.
 * *Hardware devices*: This tile gives us information on any connected hardware devices like GPUs, or other devices that are passed through from the hypervisor.
@@ -170,7 +170,7 @@ image::ocp5/module-01-intro/20_Configuration_Tab.png[link=self, window=blank, wi
 * *Initial run*: This tab allows us to configure _cloud-init_ for Linux or _sys-prep_ for Microsoft Windows, including setting the commands to be executed on the first boot, such as the injection of SSH keys, installation of applications, network configuration, and more.
 * *Labels and annotations*: This tab shows current Labels and Annotations applied to the virtual machine. Modifying these values can help us tag our machines for specific purposes like scheduling placement on specific nodes, or to help us enable automated workflows by uniquely identifying machines.
 
-. You can click on each of these to explore at your leisure, but for introductory purposes, lets focus on storage and networking specifically which are two primary areas that many virtualization administrators are concerned with.
+. You can click on each of these to explore at your leisure, but for introductory purposes, let's focus on storage and networking specifically which are two primary areas that many virtualization administrators are concerned with.
 
 . List the disks associated with the VM by clicking on the *Storage* tab:
 +

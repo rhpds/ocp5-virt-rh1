@@ -120,11 +120,11 @@ image::ocp5/module-03-bcdr/09_Confirm_Delete.png[link=self, window=blank, width=
 +
 image::ocp5/module-03-bcdr/10_Deleted_VM.png[link=self, window=blank, width=100%]
 
-. Click on *Ecosystem* and then *Installed Operators* and select the *OADP Operator* once again. (You may need to switch back to the *OADP-{user}* project.)
+. Click on *Ecosystem* and then *Installed Operators* and select the *OADP Operator* once again. (You may need to switch back to the *oadp-{user}* project.)
 +
 image::ocp5/module-03-bcdr/11_Switch_Back_OADP.png[link=self, window=blank, width=100%]
 
-. Use the horizontal navigation bar to locate the the *Restore* tab, click the *Restore* tab, and then press *Create Restore*.
+. Use the horizontal navigation bar to locate the *Restore* tab, click the *Restore* tab, and then press *Create Restore*.
 +
 image::ocp5/module-03-bcdr/12_Restore_Tab.png[link=self, window=blank, width=100%]
 

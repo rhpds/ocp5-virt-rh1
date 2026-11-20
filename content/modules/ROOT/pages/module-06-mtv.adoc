@@ -90,7 +90,7 @@ Additionally, this lab has already been configured with an additional provider n
 
 Now that we have reviewed our environment, and have our providers created, it is time for us to create a *Migration Plan*. This plan selects which VMs to migrate from VMware vSphere to Red Hat OpenShift Virtualization and specifics about how to execute the migration.
 
-. Navigate in the left menu to the *Migration for Virtualization -> Migrations plans* option and press either of the *Create Plan* buttons to start the migration wizard.
+. Navigate in the left menu to the *Migration for Virtualization -> Migration plans* option and press either of the *Create Plan* buttons to start the migration wizard.
 +
 image::ocp5/module-06-mtv/02_Create_VMWARE_Plan.png[link=self, window=blank, width=100%]
 
@@ -98,7 +98,7 @@ image::ocp5/module-06-mtv/02_Create_VMWARE_Plan.png[link=self, window=blank, wid
 +
 image::ocp5/module-06-mtv/03_VMware_Source_Provider.png[link=self, window=blank, width=100%]
 
-. The page will update to the *Virtual machines* page and you will see a folder named *Roadshow*. If you click the expanding arrow next to the folder, you will see the a list of the virtual machines in the environment that your user account *{user}* has access to.
+. The page will update to the *Virtual machines* page and you will see a folder named *Roadshow*. If you click the expanding arrow next to the folder, you will see a list of the virtual machines in the environment that your user account *{user}* has access to.
 
 . Click the boxes to select the three VMs you would like to move, and click the *Next* button.
 
@@ -164,7 +164,7 @@ Please take this time to review the following sections and enjoy the interactive
 
 Automated configuration hooks are a really awesome and powerful feature built into the Migration Toolkit for Virtualization.
 
-Configuration hooks are included as a feature in the Migration Toolkit for Virtualization. They can be set up as either a pre- or post-configuration hook to modify the properties of a virtual machine either before or after the migration process completed. They leverage the power of Ansible automation to perform their desired actions through YAML formatted playbooks, but they do not require a separate subscription for https://www.redhat.com/en/technologies/management/ansible[Ansible Automation Platform^]. Instead, they run by executing inside of a separate *ansible-runner* pod with runs the playbook provided against the target virtual machines during the migration process.
+Configuration hooks are included as a feature in the Migration Toolkit for Virtualization. They can be set up as either a pre- or post-configuration hook to modify the properties of a virtual machine either before or after the migration process completed. They leverage the power of Ansible automation to perform their desired actions through YAML formatted playbooks, but they do not require a separate subscription for https://www.redhat.com/en/technologies/management/ansible[Ansible Automation Platform^]. Instead, they run by executing inside of a separate *ansible-runner* pod which runs the playbook provided against the target virtual machines during the migration process.
 
 These automated tasks can be invaluable to ensuring that virtual machines that worked on a source hypervisor, work as expected on OpenShift Virtualization.
 
