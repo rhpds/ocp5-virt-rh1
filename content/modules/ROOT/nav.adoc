@@ -42,7 +42,7 @@
 
 * xref:module-08-intelligentocp.adoc[Intelligent OpenShift and Virtualization]
 ** xref:module-08-intelligentocp.adoc#openshift_lightspeed_create[Using OpenShift Lightspeed to Create VMs]
-** xref:module-08-intelligentocp.adoc#openshift_lightspeed_troubleshoot[Using OpenShift Lightspeed to Create VMs]
+** xref:module-08-intelligentocp.adoc#openshift_lightspeed_troubleshoot[Using OpenShift Lightspeed to Troubleshoot VMs]
 ** xref:module-08-intelligentocp.adoc#openshift_mcp_server[Using OpenShift MCP Server to Create VMs]
 
 * xref:conclusion.adoc[Conclusion]

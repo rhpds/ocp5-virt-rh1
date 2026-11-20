@@ -1,7 +1,5 @@
 = Module 08: Intelligent OpenShift with Virtualization
 
-include::vars.adoc[]
-
 == Introduction
 
 With the introduction of OpenShift 5, there are a number of new agentic AI enhanced features that make our ability to work with virtual machines much easier. Many end users have often been in the same virtualization ecosystem for more than a decade, and are having to learn whole new functionality when they adopt OpenShift Virtualization. While this lab is intended to demonstrate how many of the same feature expectations that they are comfortable with in their existing environments are still available to them in OpenShift Virtualization in very similar workflows, many will still have questions. The new agentic AI features available in OpenShift 5 can be used to ease some of the burden of adopting an entirely new platform, from deployments to troubleshooting virtual machines and applications.
@@ -10,7 +8,7 @@ With the introduction of OpenShift 5, there are a number of new agentic AI enhan
 == Objectives
 
 * The attendee will use OpenShift Lightspeed to deploy a VM and install an application automatically.
-* The attendee will use OpenShift Ligthspeed to troubleshoot a broken VM.
+* The attendee will use OpenShift Lightspeed to troubleshoot a broken VM.
 * The attendee will use an AI agent (OpenCode) to connect to the OpenShift MCP server, and deploy a VM.
 
 [[getting-started-lightspeed]]
@@ -26,7 +24,7 @@ Start by performing a copy/paste action on the following question, and click the
 
 [source,shell,subs=attributes,role=execute]
 ----
-How many virtual machines are running in the {modernize_ocp_virt_username}-vms project?
+How many virtual machines are running in the vmexamples-{user} project?
 ----
 
 image::ocp5/module-08-intelligentocp/19-lightspeed-question-one.png["Lightspeed chat window with the question about running VMs pasted in", link=self,window=blank,width=100%]
@@ -56,7 +54,7 @@ image::ocp5/module-08-intelligentocp/23-lightspeed-answer-two.png["Lightspeed re
 
 NOTE: Notice that OpenShift Lightspeed can continue a series of questions by inferring information from those previously asked. In this example, we did not have to restate the project, or tell it specifically which VM we were referring to in the second prompt.
 
-Feel free to play with OpenShift Lightspeed at your leisure, by asking it other questions. Note that some information about the overall cluster may not be available to your {modernize_ocp_virt_username} account and the permissions granted to it.
+Feel free to play with OpenShift Lightspeed at your leisure, by asking it other questions. Note that some information about the overall cluster may not be available to your {user} account and the permissions granted to it.
 
 When you are finished, click the `trash-bin` icon in the top right corner to clear the OpenShift Lightspeed prompt history.
 
@@ -85,7 +83,7 @@ Copy and paste the following prompt into OpenShift Lightspeed and click the `Sen
 
 [source,shell,subs=attributes,role=execute]
 ----
-Create a YAML manifest that creates a VM in the {modernize_ocp_virt_username}-vms project that has CentOS Stream 9 as its operating system, to be used as a database-server. Configure it with a username and password through cloudinit, and automatically install mariadb and configure it to run on startup.
+Create a YAML manifest that creates a VM in the vmexamples-{user} project that has CentOS Stream 9 as its operating system, to be used as a database-server. Configure it with a username and password through cloudinit, and automatically install mariadb and configure it to run on startup.
 ----
 
 image::ocp5/module-08-intelligentocp/28-create-vm-prompt.png["Lightspeed chat with the database server VM creation prompt pasted in", link=self,window=blank,width=100%]
@@ -104,7 +102,7 @@ apiVersion: kubevirt.io/v1
 kind: VirtualMachine
 metadata:
   name: database-server
-  namespace: {modernize_ocp_virt_username}-vms
+  namespace: vmexamples-{user}
 spec:
   running: true
   template:
@@ -154,7 +152,7 @@ Paste the YAML manifest provided and click the `Create` button at the bottom.
 
 image::ocp5/module-08-intelligentocp/31-paste-yaml.png["Import YAML editor with the VM manifest pasted and Create button at bottom", link=self,window=blank,width=100%]
 
-The VM should start provisioning and after a few moments it will enter the `Running` state. You can see that it was placed in the {modernize_ocp_virt_username}-vms namespace as directed, and is called database-server, and is running the CentOS Stream 9 operating system.
+The VM should start provisioning and after a few moments it will enter the `Running` state. You can see that it was placed in the vmexamples-{user} namespace as directed, and is called database-server, and is running the CentOS Stream 9 operating system.
 
 image::ocp5/module-08-intelligentocp/32-lightspeed-vm-running.png["database-server VM in Running state showing CentOS Stream 9 operating system", link=self,window=blank,width=100%]
 
@@ -175,7 +173,7 @@ In addition to answering basic questions about the platform, and generating conf
 
 In this task we will configure a VM to fail on purpose, and then ask OpenShift Lightspeed if it can diagnose our issue to see what it says.
 
-Ensure that you are in your `{modernize_ocp_virt_username}-vms` project and click the `Create` button in the upper right corner and select the `From template` option from the dropdown menu.
+Ensure that you are in your `vmexamples-{user}` project and click the `Create` button in the upper right corner and select the `From template` option from the dropdown menu.
 
 image::ocp5/module-08-intelligentocp/34-create-vm-from-template.png["Create button with From template option in the dropdown menu", link=self,window=blank,width=100%]
 
@@ -213,7 +211,7 @@ Click on the OpenShift Lightspeed icon in the bottom right corner, and ask it wh
 
 [source,shell,subs=attributes,role=execute]
 ----
-Why is the VM fedora-broken in the {modernize_ocp_virt_username}-vms project failing to boot?
+Why is the VM fedora-broken in the vmexamples-{user} project failing to boot?
 ----
 
 image::ocp5/module-08-intelligentocp/41-broken-lightspeed-prompt.png["Lightspeed chat with the question about why fedora-broken VM is failing to boot", link=self,window=blank,width=100%]
@@ -224,7 +222,7 @@ image::ocp5/module-08-intelligentocp/42-broken-lightspeed-answer.png["Lightspeed
 
 NOTE: Due to the nature of generative AI, there is a chance that your response does not look exactly like that provided in the screenshot above.
 
-IMPORTANT: Prior to moving on to the next section, to conserve resources and ensure a smooth lab experience, make sure that any of the VMs created in the *{modernize_ocp_virt_username}-vms* project as a part of this module are shut down, and deleted. We will not be making use of them again.
+IMPORTANT: Prior to moving on to the next section, to conserve resources and ensure a smooth lab experience, make sure that any of the VMs created in the *vmexamples-{user}* project as a part of this module are shut down, and deleted. We will not be making use of them again.
 
 
 == Conclusion

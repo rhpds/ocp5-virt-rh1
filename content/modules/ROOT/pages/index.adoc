@@ -4,7 +4,7 @@
 == Introduction
 OpenShift Virtualization enables you to bring virtual machines onto a modern, Kubernetes-based infrastructure. It enables the development and delivery of new applications as well as the modernization of existing ones and can create applications that consist of virtual machines, containers, and serverless functions - all managed together using Kubernetes-native tools and paradigms.
 
-This roadshow event  is organized to allow you to have a hands-on experience with Red Hat OpenShift Virtualization in OpenShift 5!
+This roadshow event is organized to allow you to have a hands-on experience with Red Hat OpenShift Virtualization in OpenShift 5!
 
 In this event we will explore many common management activities that virtualization administrators often encounter in their day to day workflows.
 
@@ -16,7 +16,7 @@ In this event we will explore many common management activities that virtualizat
 
 == What Content Is Covered In The Roadshow?
 
-These are the *seven* main sections that will be covered:
+These are the *eight* main sections that will be covered:
 
 * _Virtual Machine Management_: In this section we will provide a review of virtual machine management fundamentals, including quick-creating a virtual machine with a template, and reviewing basic machine controls and state management.
 
@@ -31,6 +31,8 @@ These are the *seven* main sections that will be covered:
 * _Migrating Existing Virtual Machines_: In this section, we will use the Migration Toolkit for Virtualization (MTV) to migrate virtual machines from an existing VMware vSphere environment to OpenShift Virtualization.
 
 * _Working with Virtual Machines and Applications_: In this section we will perform some day-2 activities with our imported virtual machines, by exposing our VM-hosted applications through services and routes in OpenShift.
+
+* _Intelligent OpenShift and Virtualization_: In this section we will explore the agentic AI capabilities available in OpenShift 5, using OpenShift Lightspeed to deploy and troubleshoot virtual machines, and connecting to the OpenShift MCP server with an AI agent to manage cluster resources.
 
 
 == What is OpenShift Virtualization?
@@ -65,7 +67,7 @@ The innovation in Kubernetes, serverless, service mesh, Kubernetes Operators, an
 
 == Which OpenShift Subscription is right for me?
 
-OpenShift is an inclusive platform wherein all of the features are accessible to end users at any time, but their usage is governed by the subscription that that user has purchased.
+OpenShift is an inclusive platform wherein all of the features are accessible to end users at any time, but their usage is governed by the subscription that the user has purchased.
 
 Subscriptions for OpenShift currently fall into one of four categories, all of which provide access to OpenShift Virtualization:
 
@@ -112,11 +114,11 @@ Your login is available with:
 
 This edition of the OpenShift Virtualization Roadshow has been developed using the following software versions:
 
-* Red Hat OpenShift 5.0
+* Red Hat OpenShift 5.0.1
 * Red Hat OpenShift Virtualization 5.0.0
 * Red Hat OpenShift Data Foundation 4.22.7
 * Red Hat OpenShift API for Data Protection (OADP) 1.6.2
 * Red Hat OpenShift Lightspeed 2.0
-* Red Hat Migration Toolkit for Virtual Machines 2.12.10
+* Red Hat Migration Toolkit for Virtual Machines 5.0
 
-(Accurate as of November 5, 2026)
+(Accurate as of November 20, 2026)

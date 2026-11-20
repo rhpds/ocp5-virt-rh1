@@ -48,7 +48,7 @@ NOTE: The *Virtualization* perspective is available only when Red Hat OpenShift 
 [[explore_virt]]
 == Exploring OpenShift Virtualization
 
-When you arrive in the *Virtualization* view you will be on the *Overview* page which provides a status of OpenShift Virtualization, including it's current version, the cluster status, individual node status, and a high-level view of all virtualization resources currently in use. Please take a few moments to explore this screen.
+When you arrive in the *Virtualization* view you will be on the *Overview* page which provides a status of OpenShift Virtualization, including its current version, the cluster status, individual node status, and a high-level view of all virtualization resources currently in use. Please take a few moments to explore this screen.
 
 image::ocp5/module-01-intro/05_Virt_Overview.png[link=self, window=blank, width=100%]
 
@@ -56,7 +56,7 @@ image::ocp5/module-01-intro/05_Virt_Overview.png[link=self, window=blank, width=
 +
 image::ocp5/module-01-intro/06_Virtual_Machines.png[link=self, window=blank, width=100%]
 
-. Lets explore this page for a few moments: you will notice that this view is divided into 3 columns, the left-side management menu, the central column for organization of VM-based projects, and then the virtual machine view that we just entered.
+. Let's explore this page for a few moments: you will notice that this view is divided into 3 columns, the left-side management menu, the central column for organization of VM-based projects, and then the virtual machine view that we just entered.
 
 . The left menu is the main control for Virtualization integrated functions in OpenShift. We can see virtualization related items like the Catalog, Templates and InstanceTypes to build VMs from, and the menus to configure Storage and Networking options for virtual machines.
 +
@@ -134,7 +134,7 @@ image::ocp5/module-01-intro/16a_Fedora_Running.png[link=self, window=blank, widt
 
 . Once the virtual machine is running we can do some further exploration of the *Overview* page in the right side column.  
 +
-* *Details*: This tile shows us information about our VM, including it's name, status, creation time, OS, virtual resources, and the template from which it was created. It also contains a miniature VNC terminal, and the ability to launch a fullscreen web console.
+* *Details*: This tile shows us information about our VM, including its name, status, creation time, OS, virtual resources, and the template from which it was created. It also contains a miniature VNC terminal, and the ability to launch a fullscreen web console.
 * *General*: This tile shows us information specific to OpenShift, including the Namespace (Project), Node, instance name, and Kubernetes pod where the guest is running.
 * *Snapshots*: This tile gives us information about any existing snapshots, and also has the button to quickly create a snapshot.
 * *Network*: This tile gives us the IP address of the virtual machine on the software-defined network (SDN) and it's internal hostname. If no advanced networks are defined, VMs are automatically attached to the pod network. Later in this lab we will explore advanced networking options, and how to customize connectivity for VMs.
@@ -189,11 +189,11 @@ Furthermore, a VM connected to the SDN can be accessed externally using a Route,
 [[vm_state]]
 == Controlling Virtual Machine State
 
-As a user with granted permissions to manage a  Virtualization environment: you can stop, start, restart, pause, and unpause virtual machines from the web console.
+As a user with granted permissions to manage a Virtualization environment: you can stop, start, restart, pause, and unpause virtual machines from the web console.
 
 . Click the *Overview* tab to return to the summary screen.
 
-. In the top right corner you will notice shortcut buttons for running state: stop, restart, pause, and start. As well as a dropdown menu title *Actions*.
+. In the top right corner you will notice shortcut buttons for running state: stop, restart, pause, and start. As well as a dropdown menu titled *Actions*.
 +
 image::ocp5/module-01-intro/23_VM_State_Actions.png[link=self, window=blank, width=100%]
 +
@@ -206,7 +206,7 @@ image::ocp5/module-01-intro/23_VM_State_Actions.png[link=self, window=blank, wid
 +
 image::ocp5/module-01-intro/24_VM_Actions_Menu.png[link=self, window=blank, width=100%]
 
-. Press the *Stop* button and wait until the Virtual Machine is in state *Stopped*. Notice that in the *Stopped* state the VM is not running, and the pod that was running the VM previous no longer exists.
+. Press the *Stop* button and wait until the Virtual Machine is in state *Stopped*. Notice that in the *Stopped* state the VM is not running, and the pod that was running the VM previously no longer exists.
 +
 image::ocp5/module-01-intro/25_VM_Stopped.png[link=self, window=blank, width=100%]
 
@@ -241,7 +241,7 @@ image::ocp5/module-01-intro/30_Migrate_Auto.png[link=self, window=blank, width=1
 +
 image::ocp5/module-01-intro/31_Migrate_Target_Node.png[link=self, window=blank, width=100%]
 
-. After a few seconds, the VM will change the status to *Migrating*, and you can follow it's progress. 
+. After a few seconds, the VM will change the status to *Migrating*, and you can follow its progress. 
 +
 image::ocp5/module-01-intro/32_VM_Migrating.png[link=self, window=blank, width=100%]
 

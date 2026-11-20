@@ -2,7 +2,7 @@
 
 == Introduction
 
-Until this point we have explored OpenShift Virtualization through creating some demonstration virtual machines, just to explore it's basic capabilities, and to confirm that it operates as a hypervisor in a manner that we expect. However, just testing out the product is not the goal for a majority of customers, they need to know that they can run real production workloads on the platform, or even import existing workloads from their current hypervisor into OpenShift Virtualizaton. That is what this module of our lab is about.
+Until this point we have explored OpenShift Virtualization through creating some demonstration virtual machines, just to explore its basic capabilities, and to confirm that it operates as a hypervisor in a manner that we expect. However, just testing out the product is not the goal for a majority of customers, they need to know that they can run real production workloads on the platform, or even import existing workloads from their current hypervisor into OpenShift Virtualization. That is what this module of our lab is about.
 
 In this portion of our lab we use the https://docs.redhat.com/en/documentation/migration_toolkit_for_virtualization/2.12/[Migration Toolkit for Virtualization^] (MTV) to import virtual machines from VMware vSphere to OpenShift. The migration toolkit supports two "modes" of import:
 
@@ -146,11 +146,11 @@ image::ocp5/module-06-mtv/12_VMs_Migrating.png[link=self, window=blank, width=10
 +
 image::ocp5/module-06-mtv/13_VMs_Migrating_Details.png[link=self, window=blank, width=100%]
 
-. You can click the drop-down arrow next to the name of each VM being migrated to get additional details about the stages of the migration process. Click on the arrow next to *database-{user}* to expand it's details. 
+. You can click the drop-down arrow next to the name of each VM being migrated to get additional details about the stages of the migration process. Click on the arrow next to *database-{user}* to expand its details. 
 +
 image::ocp5/module-06-mtv/14_VM_Migration_Stages.png[link=self, window=blank, width=100%]
 
-IMPORTANT: The migration of these machines can take a a little bit of time, 5-10 minutes in most cases, but that can vary depending on the number of users currently participating in the lab. In a production environment it's recommended to have a dedicated 10gbps network for virtual machine migrations, which we do not have in our simulated lab environment. Please be patient as these machines migrate, and feel free to proceed to the next section of interactive videos where we demonstrate some advanced features of the Migration Toolkit for Virtualization while awaiting the completion of the migration plan. We will work with these migrated VMs in the next module.
+IMPORTANT: The migration of these machines can take a little bit of time, 5-10 minutes in most cases, but that can vary depending on the number of users currently participating in the lab. In a production environment it's recommended to have a dedicated 10gbps network for virtual machine migrations, which we do not have in our simulated lab environment. Please be patient as these machines migrate, and feel free to proceed to the next section of interactive videos where we demonstrate some advanced features of the Migration Toolkit for Virtualization while awaiting the completion of the migration plan. We will work with these migrated VMs in the next module.
 
 
 [[interactive_demos]]

@@ -71,7 +71,7 @@ image::ocp5/conclusion/04_OpenShift_OMA.png[link=self, window=blank, width=50%]
 
 * A two-week onsite interactive workshop and follow-up report. 
 * Experienced Red Hat architects run a short series of onsite workshops to help develop your migration journey.
-* They provide an extensive review of your virtualization environment and it's current integrations including: networking, storage, security, backup, and disaster recovery.
+* They provide an extensive review of your virtualization environment and its current integrations including: networking, storage, security, backup, and disaster recovery.
 * You receive a VMA report with a tailored proposal for your complete migration including high-level recommendations and design considerations.
 * This can help with understanding of where you're going, how you'll get there, how long it will take, and how much it will cost.
 

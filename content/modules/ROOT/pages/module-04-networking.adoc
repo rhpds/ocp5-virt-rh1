@@ -9,20 +9,20 @@ As mentioned earlier in this workshop, all virtual machines are attached to the 
 
 Within OpenShift. it is also possible for virtual machines to connect directly to one or more physical networks, such as untagged network or VLANs, when needed. This is in addition to the SDN, which means that, for example, the administrator can connect to the VM from an external IP address and VMs can connect directly using a Layer2 network. This is much more similar to the experience that other hypervisor products provide to their end users when configuring networks.
 
-At a high level, configuring virtual machine networking in this manner begins by configuring the host networking, such as a Linux bridge and then addtional virtual networks underneath. The first part of this workshop segment will walk through the next step in that process, creating a network attachment definition to allow VMs to connect to that bridge and, therefore, directly to the physical network. 
+At a high level, configuring virtual machine networking in this manner begins by configuring the host networking, such as a Linux bridge and then additional virtual networks underneath. The first part of this workshop segment will walk through the next step in that process, creating a network attachment definition to allow VMs to connect to that bridge and, therefore, directly to the physical network. 
 
 NOTE: The OpenShift environment has already been configured with a Linux Bridge on each compute node your virtual machines will connect to, thus allowing for easy connectivity with/from outside network resources.
 
-In addition to the manual configuration of network attachment definitons, OpenShift has a feature called User-defined Networks (UDN) which allow users to create private network ranges inside the cluster, and route them externally, ensuring the secure isolation of managed projects including those that contain virtual machines.
+In addition to the manual configuration of network attachment definitions, OpenShift has a feature called User-defined Networks (UDN) which allow users to create private network ranges inside the cluster, and route them externally, ensuring the secure isolation of managed projects including those that contain virtual machines.
 
-Also, lets not forget that OpenShift has a rich catalog of networking partners that provide expanded features like enhanced security, network segmentation, and centralized management. If you'd like to read more about any of these partners and their Container Native Interface (CNI) Plugins, please check out the partner calalog https://www.redhat.com/en/technologies/cloud-computing/openshift/virtualization/partners#networking[here^].
+Also, lets not forget that OpenShift has a rich catalog of networking partners that provide expanded features like enhanced security, network segmentation, and centralized management. If you'd like to read more about any of these partners and their Container Native Interface (CNI) Plugins, please check out the partner catalog https://www.redhat.com/en/technologies/cloud-computing/openshift/virtualization/partners#networking[here^].
 
 While there are many different networking needs and various networking topologies deployed throughout the OpenShift customer base, keep in mind that there are many options as to how best to configure your network for your particular use case. This lab will demonstrate two specific network configuration scenarios and how they enable connectivity for virtual machines in Red Hat OpenShift. If you have specific networking questions outside of the scope of this lab, please feel free to reach out to your Red Hat support team.
 
 [[review]]
 == Review Environment
 
-Now that we've had that brief introduction to Networking in OpenShift Virtualizaiton, lets get started configuring networks for our VMs.
+Now that we've had that brief introduction to Networking in OpenShift Virtualization, let's get started configuring networks for our VMs.
 
 The *Kubernetes NMState Operator* provides a Kubernetes API for performing state-driven network configuration across the OpenShift cluster's nodes. It provides users with functionality to configure various network interface types, DNS, and routing on cluster nodes. Additionally, the daemons on the cluster nodes periodically report on the state of each node's network interfaces to the API server.
 
@@ -52,7 +52,7 @@ image::ocp5/module-04-networking/03_Linux_Bridge_Details.png[link=self, window=b
 +
 image::ocp5/module-04-networking/04_NodeNetworkConfigurationPolicy_List.png[link=self, window=blank, width=100%]
 
-. Select *br-flat* to get more information about how it's policy is configured.
+. Select *br-flat* to get more information about how its policy is configured.
 +
 image::ocp5/module-04-networking/05_NodeNetworkConfigurationPolicy_Info.png[link=self, window=blank, width=100%]
 +
@@ -93,7 +93,7 @@ spec:
 
 In order to use the Linux Bridge with your VM you need to create a *Network Attachment Definition*. This is what tells OpenShift about the network and allows the virtual machines to connect to it. Network Attachment Definitions are project scoped, to the project that they are created in and are only accessible to the virtual machines that are deployed in that project. If a Network Attachment Definition is created in the *default* project, then it becomes available globally. This gives you, the administrator, the ability to control which networks are and aren't available to specific users who have access to manage their own VMs.
 
-NOTE: A network attachment definition instructs Openshift to use an existing network device. In our lab environment that device has already been created, and is the linux-bridge named *br-flat*. You must use that name or OpenShift won’t be able to place your VMs that rely on that network, as no host will match the request, and it can only place VMs on nodes where that specifically named network device exists.
+NOTE: A network attachment definition instructs OpenShift to use an existing network device. In our lab environment that device has already been created, and is the linux-bridge named *br-flat*. You must use that name or OpenShift won’t be able to place your VMs that rely on that network, as no host will match the request, and it can only place VMs on nodes where that specifically named network device exists.
 
 . From the left-side menu, select *Networking* followed by *Network Attachment Definitions* and click the *Create network attachment definition* button.
 +
@@ -125,7 +125,7 @@ image::ocp5/module-04-networking/10_VM_Network_Tab.png[link=self, window=blank, 
 +
 image::ocp5/module-04-networking/11_VM_Network_Attach.png[link=self, window=blank, width=100%]
 
-. You will see a prompt about this being a *Pending* change, and that a migration is required. In OpenShift Virtualizaiton, a hot-modification of a network adapter is a supported operation, but it requires that the VM live-migrate to modify the resource requests of the pod hosting the VM. This process is automatically performed when attaching a new network device to the VM.
+. You will see a prompt about this being a *Pending* change, and that a migration is required. In OpenShift Virtualization, a hot-modification of a network adapter is a supported operation, but it requires that the VM live-migrate to modify the resource requests of the pod hosting the VM. This process is automatically performed when attaching a new network device to the VM.
 +
 image::ocp5/module-04-networking/12_VM_Network_Pending.png[link=self, window=blank, width=100%]
 
@@ -211,7 +211,7 @@ image::ocp5/module-04-networking/18_UDN_NAD.png[link=self, window=blank, width=1
 
 . Creating a Virtual Machine that is attached to a Primary UserDefinedNetwork is as simple as creating a machine from a template or instancetype in the project where the primary UDN is defined. The UDN replaces the default (pod) network as found in other projects that are not enabled for UDN support. To test this, lets create one now.
 
-. Click on *VirtualMachines* in the left-side navigation menu, ensure that the toggle is turned off for *Show only projects with VirtualMachines* so that we can see our *vmexamples-{user}-udn* project. Highlight the project and click the , click the *Create* button in the upper right corner.
+. Click on *VirtualMachines* in the left-side navigation menu, ensure that the toggle is turned off for *Show only projects with VirtualMachines* so that we can see our *vmexamples-{user}-udn* project. Highlight the project and click the *Create* button in the upper right corner.
 +
 image::ocp5/module-04-networking/19_Create_UDN_VM.png[link=self, window=blank, width=100%]
 

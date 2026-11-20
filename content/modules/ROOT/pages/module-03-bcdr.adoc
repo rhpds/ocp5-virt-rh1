@@ -31,7 +31,7 @@ In this portion of the lab, we will make use of OADP to perform a virtual machin
 +
 image::ocp5/module-03-bcdr/00_Left_Menu.png[link=self, window=blank, width=100%]
 
-. Click on the operator to see it's details.
+. Click on the operator to see its details.
 
 . Review the *Provided APIs* available. In this module, the *Backup* and *Restore* functions will be used.
 +
@@ -45,7 +45,7 @@ image::ocp5/module-03-bcdr/02_DPA.png[link=self, window=blank, width=100%]
 +
 image::ocp5/module-03-bcdr/03_OADP_YAML.png[link=self, window=blank, width=100%]
 +
-Notice that *OADP* has been configured by adding the *kubevirt* plugin and it has been configured to use the internal object storage bucket provided by OpenShift Data Foundations running on your cluster.
+Notice that *OADP* has been configured by adding the *kubevirt* plugin and it has been configured to use the internal object storage bucket provided by OpenShift Data Foundation running on your cluster.
 +
 IMPORTANT: For the sake of convenience our lab is setup to perform the backups to a local object bucket, however in a production environment you would want to ensure that backups are directed to an external storage system, or a cloud-based object storage bucket to ensure that workloads are protected against a localized disaster.
 
