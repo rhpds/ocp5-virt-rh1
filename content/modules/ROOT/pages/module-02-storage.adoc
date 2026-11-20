@@ -157,7 +157,7 @@ IMPORTANT: As this VM is a direct clone of fedora01, there are a few remnants of
 +
 image::ocp5/module-02-storage/21_Cloned_VM_YAML.png[link=self, window=blank, width=100%]
 
-. Modify the *app* and *kubevirt.io/domain* values in the YAML so that they are set to *fedora02* then click the *Save* button at the bottom, you will prompted that *fedora02* has been updated to a new version. Doing this now will allow us to avoid issues working with this VM in later modules.
+. Modify the *app* and *kubevirt.io/domain* values in the YAML so that they are set to *fedora02*, then click the *Save* button at the bottom, you will be prompted that *fedora02* has been updated to a new version. Doing this now will allow us to avoid issues working with this VM in later modules.
 +
 image::ocp5/module-02-storage/22_Cloned_VM_YAML_Saved.png[link=self, window=blank, width=100%]
 

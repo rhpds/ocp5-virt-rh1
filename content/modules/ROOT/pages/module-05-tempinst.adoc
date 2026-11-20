@@ -45,7 +45,7 @@ image::ocp5/module-05-tempinst/03_Custom_VM_OS.png[link=self, window=blank, widt
 
 . The following screen is the *Boot source* screen, which will list available boot volumes, that are available in the *openshift-virtualization-os-images* project. You should see the boot volume for *centos-stream-10* available, click to select it, and then click the *Next* button to advance to the next screen. 
 +
-image::ocp5/module-05-tempinst/04_Availabe_Boot_Volumes.png[link=self, window=blank, width=100%]
+image::ocp5/module-05-tempinst/04_Available_Boot_Volumes.png[link=self, window=blank, width=100%]
 
 . Next you will find yourself on the *Compute resources* screen. This screen allows you to select the *InstanceType* that you would like to use to specify the resources of your virtual machine.
 +
@@ -53,7 +53,7 @@ image::ocp5/module-05-tempinst/04_Availabe_Boot_Volumes.png[link=self, window=bl
 ** *Compute Exclusive (CX) series*: Designed for compute intensive workloads by requesting additional dedicated CPUs for additional function offload.
 ** *Dedicated vCPU (D) series*: Designed to be used with dedicated or pinned vCPU workloads.
 ** *General Purpose (U) series*: Designed for common workload types, intended to be the default or "Universal" type.
-** *Memory Intensive (M) series*: Designed for memory intensive workloads that require dedicate memory assignments.
+** *Memory Intensive (M) series*: Designed for memory intensive workloads that require dedicated memory assignments.
 ** *Network (N) series*: Designed for network intensive DPDK workloads like VNFs.  
 ** *Overcommitted (O) series*: Specialized general purpose instance type with memory overcommit preconfigured.
 ** *Realtime (RT) series*: Designed for realtime virtualization use cases. This requires specialized nodes that can support this workload type.
@@ -91,7 +91,7 @@ image::ocp5/module-05-tempinst/08_Cloud_Init_Script.png[link=self, window=blank,
 
 . You will now be on a screen called *Review and create*. Click the *Create VirtualMachine* button to start up your newly defined VM.
 +
-image::ocp5/module-05-tempinst/09_Revew_Create.png[link=self, window=blank, width=100%]
+image::ocp5/module-05-tempinst/09_Review_Create.png[link=self, window=blank, width=100%]
 
 . Our virtual machine will boot like the ones we have created previously. We can see that it is based on the instance-type we selected, and has the resources and OS preference we requested.
 +
@@ -128,7 +128,7 @@ image::ocp5/module-05-tempinst/14_Save_Template_Dialog.png[link=self, window=bla
 +
 image::ocp5/module-05-tempinst/15_Template_Ready.png[link=self, window=blank, width=100%]
 
-. Now lets test our template by deploying it, and confirming that it works as expected, with our expected resources, and our database installed.
+. Now let's test our template by deploying it, and confirming that it works as expected, with our expected resources, and our database installed.
 
 . Return to the *VirtualMachines* menu, highlight your *vmexamples-{user}* project, and use the *Create* button in the corner.
 +

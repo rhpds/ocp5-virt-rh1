@@ -2,7 +2,7 @@
 
 == Introduction
 
-Data Protection is a major topic of conversation when it comes to any enterprise workload, and there are no shortage of options currently available for backup and recovery of virtual machines with OpenShift Virtualization. Many of these solutions function in the same manner at which they protect pods in OpenShift. They do this by taking a backup of the virtual machine, or a namespace containing multiple virtual machines and store it remotely in an object storage bucket. These backups usually also include the persistent storage volume, alongside the metadata and custom resources that define the virtual machine.
+Data Protection is a major topic of conversation when it comes to any enterprise workload, and there is no shortage of options currently available for backup and recovery of virtual machines with OpenShift Virtualization. Many of these solutions function in the same manner at which they protect pods in OpenShift. They do this by taking a backup of the virtual machine, or a namespace containing multiple virtual machines and store it remotely in an object storage bucket. These backups usually also include the persistent storage volume, alongside the metadata and custom resources that define the virtual machine.
 
 Red Hat Solutions Include:
 
@@ -158,7 +158,7 @@ image::ocp5/module-03-bcdr/13_Create_Restore_YAML.png[link=self, window=blank, w
 +
 image::ocp5/module-03-bcdr/14_Restore_Completed.png[link=self, window=blank, width=100%]
 
-. Navigate back to *Virtualization* and click  *Virtual Machines* in the left-side menu and confirm that the *fedora02* virtual machine was restored (in the *vmexamples-{user}* project). You can see it's *Created* value should be a quite short time ago.
+. Navigate back to *Virtualization* and click  *Virtual Machines* in the left-side menu and confirm that the *fedora02* virtual machine was restored (in the *vmexamples-{user}* project). You can see its *Created* value should be a quite short time ago.
 +
 image::ocp5/module-03-bcdr/15_VM_Restored.png[link=self, window=blank, width=100%]
 

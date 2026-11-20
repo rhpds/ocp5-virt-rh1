@@ -6,13 +6,13 @@ OpenShift Virtualization enables you to bring virtual machines onto a modern, Ku
 
 This roadshow event is organized to allow you to have a hands-on experience with Red Hat OpenShift Virtualization in OpenShift 5!
 
-In this event we will explore many common management activities that virtualization administrators often encounter in their day to day workflows.
+In this event we will explore many common management activities that virtualization administrators often encounter in their day-to-day workflows.
 
 == Who Will Benefit Most from attending a Roadshow?
 
-*Virtual Machine Administrators* -- Those responsible for day to day management of virtual guests in OpenShift Virtualization. These users will often find themselves responsible for provisioning virtual guests, and day to day management of the guests, and the applications running within.
+*Virtual Machine Administrators* -- Those responsible for day-to-day management of virtual guests in OpenShift Virtualization. These users will often find themselves responsible for provisioning virtual guests, and day-to-day management of the guests, and the applications running within.
 
-*Virtual Infrastructure Administrators* -- Those responsible for the physical infrastructure hosting the OpenShift Virtualization solution. These users will be responsible for physical hardware, storage, and networking changes to the environment, that will affect the day to day operations of the running virtual machines.
+*Virtual Infrastructure Administrators* -- Those responsible for the physical infrastructure hosting the OpenShift Virtualization solution. These users will be responsible for physical hardware, storage, and networking changes to the environment, that will affect the day-to-day operations of the running virtual machines.
 
 == What Content Is Covered In The Roadshow?
 

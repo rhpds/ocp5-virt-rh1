@@ -74,7 +74,7 @@ image::ocp5/module-01-intro/09_VM_List.png[link=self, window=blank, width=100%]
 +
 image::ocp5/module-01-intro/10_VM_Imported_Project.png[link=self, window=blank, width=100%]
 
-. You can also tell from this view that the status of all of the VM's in the cluster are currently stopped by referencing the status icon in the project view column, or the status column in the Virtual machines panel.
+. You can also tell from this view that the status of all of the VMs in the cluster are currently stopped by referencing the status icon in the project view column, or the status column in the Virtual machines panel.
 +
 image::ocp5/module-01-intro/11_VMs_Stopped.png[link=self, window=blank, width=100%]
 
@@ -112,7 +112,7 @@ If you were deploying in your own environment where you can customize the option
 +
 image::ocp5/module-01-intro/13a_Source_Available.png[link=self, window=blank, width=100%]
 
-. Select the *Fedora VM* , and a dialog opens providing details of what the associated template *fedora-server-small* provides for resources. After you have reviewed the information pane, click the *Next* button to continue.
+. Select the *Fedora VM*, and a dialog opens providing details of what the associated template *fedora-server-small* provides for resources. After you have reviewed the information pane, click the *Next* button to continue.
 +
 image::ocp5/module-01-intro/14_Select_Template.png[link=self, window=blank, width=100%]
 
@@ -225,7 +225,7 @@ image::ocp5/module-01-intro/27_VM_Actions_Paused.png[link=self, window=blank, wi
 [[live_migrate]]
 == Live Migrate a Virtual Machine
 
-In this section, we will migrate the VM from one OpenShift node to another without shutting down the VM. Live migration requires *ReadWriteMany* (RWX) storage so that the VM disks can be mounted on both the source and destination nodes at the same time. In most cases OpenShift Virtualization, unlike other virtualization solutions that you may be familiar with, does not use monolithic datastores mounted to each cluster member that hold many VM disks for many different VMs by default. Instead, it makes use of the Kubernetes CSI paradigm where persistent claims are created for each VM disk needed, and each of those disks are stored in its own volume that is only mounted when and where it's needed.
+In this section, we will migrate the VM from one OpenShift node to another without shutting down the VM. Live migration requires *ReadWriteMany* (RWX) storage so that the VM disks can be mounted on both the source and destination nodes at the same time. In most cases OpenShift Virtualization, unlike other virtualization solutions that you may be familiar with, does not use monolithic datastores mounted to each cluster member that hold many VM disks for many different VMs by default. Instead, it makes use of the Kubernetes CSI paradigm where persistent claims are created for each VM disk needed, and each of those disks is stored in its own volume that is only mounted when and where it's needed.
 
 . You can see the physical node where the VM is running on the *General* tile on the *Overview* page.
 +
@@ -235,7 +235,7 @@ image::ocp5/module-01-intro/28_Node_Name.png[link=self, window=blank, width=100%
 +
 image::ocp5/module-01-intro/29_VM_Dialog_Migrate.png[link=self, window=blank, width=100%]
 
-. You will be presented with a dialog that gives you an option to allow OpenShift to automatically select your destination, or to select a specific node yourself. If you like you can explore the other suitable nodes on the cluster by selecting the *Specific Node* button. When you are ready to migrate *Automatically selected Node* selected to let OpenShift select the placement, and click the *Migrate VirtualMachine* button. 
+. You will be presented with a dialog that gives you an option to allow OpenShift to automatically select your destination, or to select a specific node yourself. If you like you can explore the other suitable nodes on the cluster by selecting the *Specific Node* button. When you are ready to migrate, leave *Automatically selected Node* selected to let OpenShift select the placement, and click the *Migrate VirtualMachine* button. 
 +
 image::ocp5/module-01-intro/30_Migrate_Auto.png[link=self, window=blank, width=100%]
 +

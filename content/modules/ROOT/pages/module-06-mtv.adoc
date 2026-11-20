@@ -76,7 +76,7 @@ NOTE: You will not need to migrate the HAproxy (load balancer) VM because OpenSh
 
 Now that we have taken a tour of our VMware vSphere environment, it's time to familiarize ourselves with the Migration Toolkit for Virtualization in Red Hat OpenShift. 
 
-. In the left-side menu of the *Virtualizaton* perspective, click on *Migration for Virtualization* and from the dropdown select *Providers*.
+. In the left-side menu of the *Virtualization* perspective, click on *Migration for Virtualization* and from the dropdown select *Providers*.
 
 . Select project *mtv-{user}* at the top of the page.
 +
@@ -94,7 +94,7 @@ Now that we have reviewed our environment, and have our providers created, it is
 +
 image::ocp5/module-06-mtv/02_Create_VMWARE_Plan.png[link=self, window=blank, width=100%]
 
-. The first page you will encounter is the *General* screen where you will be asked to create a *Plan name*, fill in the field with the value: *move-webapp-vmware*. Ensure that the Project selected for the migration is *mtv-{user}*, select *vmware* from from the Source provider dropdown, and select *host* from the Target provider dropdown. Finally select *vmexamples-{user}* as the project from the Target project dropdown, and when you are ready, click the *Next* button.
+. The first page you will encounter is the *General* screen where you will be asked to create a *Plan name*, fill in the field with the value: *move-webapp-vmware*. Ensure that the Project selected for the migration is *mtv-{user}*, select *vmware* from the Source provider dropdown, and select *host* from the Target provider dropdown. Finally select *vmexamples-{user}* as the project from the Target project dropdown, and when you are ready, click the *Next* button.
 +
 image::ocp5/module-06-mtv/03_VMware_Source_Provider.png[link=self, window=blank, width=100%]
 
@@ -170,7 +170,7 @@ These automated tasks can be invaluable to ensuring that virtual machines that w
 
 You can perform simple tasks like editing files on the guest, or more complex tasks like updating the configuration of hardware devices.
 
-Check out the interactive demo below to see examples of both examples in action.
+Check out the interactive demo below to see both examples in action.
 
 .The steps of the demo include the following:
 * We will discover a virtual machine on a remote ESXi host and configure a cold migration plan.
@@ -232,7 +232,7 @@ image::ocp5/module-06-mtv/16_VMs_In_Openshift.png[link=self, window=blank, width
 
 == Summary
 
-In this section we explored the Migration Toolkit for Virtualization, and used it to assist with the migration of existing virtual machines from a VMware vSphere environment to OpenShift Virtualization. We also viewed some interactive videos to that allowed us to demonstrate some advanced features that can be utilized in specific migration scenarios.
+In this section we explored the Migration Toolkit for Virtualization, and used it to assist with the migration of existing virtual machines from a VMware vSphere environment to OpenShift Virtualization. We also viewed some interactive videos that allowed us to demonstrate some advanced features that can be utilized in specific migration scenarios.
 
 In addition to the Migration Toolkit for Virtualization, there are two other migration toolkits currently available. The combination of these can be used to move many types of workloads into and within OpenShift clusters depending on your organization's needs.
 

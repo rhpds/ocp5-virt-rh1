@@ -48,7 +48,7 @@ image::ocp5/module-04-networking/03_Linux_Bridge_Details.png[link=self, window=b
 
 . Click on the *X* in the corner to close this window.
 
-. Each of the network devices in this list are configured and controlled by the *Kubernetes NMState Operator*. Click on *NodeNetworkConfigurationPolicy* in the left-side menu to explore more. You will see the linux-bridge *br-flat* is available here again, and it's policy is applied to each node in the cluster.
+. Each of the network devices in this list are configured and controlled by the *Kubernetes NMState Operator*. Click on *NodeNetworkConfigurationPolicy* in the left-side menu to explore more. You will see the linux-bridge *br-flat* is available here again, and its policy is applied to each node in the cluster.
 +
 image::ocp5/module-04-networking/04_NodeNetworkConfigurationPolicy_List.png[link=self, window=blank, width=100%]
 
@@ -200,7 +200,7 @@ image::ocp5/module-04-networking/16_UDN_Form.png[link=self, window=blank, width=
 +
 image::ocp5/module-04-networking/17_UDN_Created.png[link=self, window=blank, width=100%]
 +
-* The Default name when it's created using the form is *primary-udn*.
+* The default name when it's created using the form is *primary-udn*.
 * By default the Network Topology is Layer 2 (Currently only Layer 2 and LocalNet are supported for OpenShift Virtualization).
 * The Role is primary.
 * A Network Attachment Definition is created automatically.
@@ -209,7 +209,7 @@ image::ocp5/module-04-networking/17_UDN_Created.png[link=self, window=blank, wid
 +
 image::ocp5/module-04-networking/18_UDN_NAD.png[link=self, window=blank, width=100%]
 
-. Creating a Virtual Machine that is attached to a Primary UserDefinedNetwork is as simple as creating a machine from a template or instancetype in the project where the primary UDN is defined. The UDN replaces the default (pod) network as found in other projects that are not enabled for UDN support. To test this, lets create one now.
+. Creating a Virtual Machine that is attached to a Primary UserDefinedNetwork is as simple as creating a machine from a template or instancetype in the project where the primary UDN is defined. The UDN replaces the default (pod) network as found in other projects that are not enabled for UDN support. To test this, let's create one now.
 
 . Click on *VirtualMachines* in the left-side navigation menu, ensure that the toggle is turned off for *Show only projects with VirtualMachines* so that we can see our *vmexamples-{user}-udn* project. Highlight the project and click the *Create* button in the upper right corner.
 +
@@ -241,7 +241,7 @@ image::ocp5/module-04-networking/23_UDN_Network_Config.png[link=self, window=bla
 +
 image::ocp5/module-04-networking/24_UDN_RHEL_Console.png[link=self, window=blank, width=100%]
 +
-* The VM has assigned an IP from the subnet defined
+* The VM has been assigned an IP from the subnet defined
 * The VM automatically gets the gateway configuration from the DHCP server.
 * The VM has access to internet using the User Defined Network.
 
